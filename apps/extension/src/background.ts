@@ -75,7 +75,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     finalize(tabId).then(() => sendResponse({ ok: true }));
     return true;
   } else if (msg.type === 'flush') {
-    flushAll().then(() => sendResponse({ ok: true }));
+    console.log('🔍 Flush requested from side panel');
+    flushAll().then(() => {
+      console.log('🔍 Flush completed');
+      sendResponse({ ok: true });
+    }).catch(e => {
+      console.error('🔍 Flush failed:', e);
+      sendResponse({ error: e.message });
+    });
     return true;
   }
 });

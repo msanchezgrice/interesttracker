@@ -13,6 +13,7 @@ export default function Dashboard() {
           <Link className="hover:text-amber-400" href="/dashboard">Dashboard</Link>
           <Link className="hover:text-amber-400" href="/trends">Trends</Link>
           <Link className="hover:text-amber-400" href="/ideas">Ideas</Link>
+          <Link className="hover:text-amber-400" href="/history">History</Link>
         </div>
       </header>
 
@@ -96,6 +97,19 @@ export default function Dashboard() {
             >
               Generate Now
             </button>
+          </div>
+
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+            <h3 className="font-medium text-amber-400 mb-3">Browse History</h3>
+            <p className="text-neutral-300 text-sm mb-4">
+              View collected attention data and debug tracking.
+            </p>
+            <Link 
+              href="/history"
+              className="inline-block px-4 py-2 rounded-md border border-neutral-700 hover:border-neutral-600"
+            >
+              View History
+            </Link>
           </div>
 
           <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
