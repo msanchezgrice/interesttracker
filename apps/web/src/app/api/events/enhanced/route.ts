@@ -53,9 +53,9 @@ export async function GET(req: NextRequest) {
       date: event.tsStart.toISOString(),
       formattedDate: new Date(event.tsStart).toLocaleString(),
       // Extract metadata safely
-      description: (event.metadata as Record<string, any>)?.description || null,
-      image: (event.metadata as Record<string, any>)?.ogImage || null,
-      author: (event.metadata as Record<string, any>)?.author || null,
+      description: (event.metadata as Record<string, unknown>)?.description as string || null,
+      image: (event.metadata as Record<string, unknown>)?.ogImage as string || null,
+      author: (event.metadata as Record<string, unknown>)?.author as string || null,
       // Default values for new fields
       themes: event.themes || [],
       contentTags: event.contentTags || [],
