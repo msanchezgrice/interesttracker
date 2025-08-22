@@ -97,8 +97,8 @@ export async function POST() {
           themes: {
             themes: themes.length ? themes : [topicData.topic],
             contentTags: bestEvent.contentTags || [],
-            contentType: 'article',
-            technicalLevel: 'intermediate',
+            contentType: 'analysis' as const,
+            technicalLevel: 'intermediate' as const,
             keyInsights: [`High engagement with ${topicData.topic} content`]
           },
           recentTopics: Array.from(topicScores.keys()).slice(0, 5)
@@ -110,9 +110,9 @@ export async function POST() {
       }
       
       // Pick the best idea or create a fallback
-      const bestIdea = contentIdeas[0] || {
+      const bestIdea = (contentIdeas[0] as Record<string, unknown>) || {
         title: `Insights on ${topicData.topic}`,
-        format: 'tweet',
+        format: 'TWITTER',
         estimatedReach: { score: 70, reasoning: 'Topic shows high engagement' },
         tags: [topicData.topic.toLowerCase().replace(/\s+/g, '-')],
         proposedOutput: {
@@ -138,15 +138,15 @@ export async function POST() {
             }))
           },
           sourceEventIds: topEvents.map(e => e.id),
-          tags: bestIdea.tags || [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated'],
-          format: bestIdea.format,
-          estimatedReach: bestIdea.estimatedReach?.score || 70,
+          tags: (bestIdea.tags as string[]) || [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated'],
+          format: (bestIdea.format as 'TWITTER' | 'LINKEDIN' | 'BLOG' | 'SHORTS') || 'TWITTER',
+          estimatedReach: (bestIdea.estimatedReach as { score: number })?.score || 70,
           proposedOutput: bestIdea.proposedOutput || bestIdea.draftContent ? {
-            platform: bestIdea.format,
-            content: bestIdea.draftContent || bestIdea.proposedOutput?.content || '',
+            platform: (bestIdea.format as string) || 'TWITTER',
+            content: (bestIdea.draftContent as string) || (bestIdea.proposedOutput as { content?: string })?.content || '',
             metadata: {
-              hashtags: bestIdea.hashtags || bestIdea.proposedOutput?.metadata?.hashtags || [],
-              angle: bestIdea.angle
+              hashtags: (bestIdea.hashtags as string[]) || (bestIdea.proposedOutput as { metadata?: { hashtags?: string[] } })?.metadata?.hashtags || [],
+              angle: bestIdea.angle as string
             }
           } : undefined
         }
