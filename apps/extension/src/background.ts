@@ -52,6 +52,13 @@ chrome.runtime.onSuspend.addListener(async () => { await flushAll(); });
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   const tabId = sender.tab?.id;
+  console.log('🔍 Background received message:', msg.type, 'from tab:', tabId);
+  
+  if (msg.type === 'test') {
+    sendResponse({ ok: true, timestamp: Date.now() });
+    return;
+  }
+  
   if (!tabId) return;
   if (msg.type === 'heartbeat') {
     const st = S.get(tabId) ?? { url: msg.url, startedAt: Date.now(), ms: 0, lastBeat: 0, scrollMax: 0 };

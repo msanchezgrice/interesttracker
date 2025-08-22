@@ -65,7 +65,24 @@ window.addEventListener('beforeunload', () => {
   }
 });
 
-console.log('Content script loaded on:', location.href);
+// Add a visible indicator that the script loaded
+console.log('🔍 MakerPulse content script loaded on:', location.href);
+console.log('🔍 Document ready state:', document.readyState);
+console.log('🔍 Current time:', new Date().toISOString());
+
+// Test chrome.runtime connection
+try {
+  chrome.runtime.sendMessage({ type: 'test' }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('🔍 Runtime connection failed:', chrome.runtime.lastError);
+    } else {
+      console.log('🔍 Runtime connection OK:', response);
+    }
+  });
+} catch (e) {
+  console.error('🔍 Runtime sendMessage failed:', e);
+}
+
 start();
 
 
