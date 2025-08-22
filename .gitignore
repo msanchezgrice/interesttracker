@@ -1,0 +1,13 @@
+# Dependencies
+**/node_modules/
+
+# Build outputs
+apps/web/.next/
+apps/web/out/
+apps/extension/dist/
+
+# Env files
+**/.env*
+
+# OS
+.DS_Store

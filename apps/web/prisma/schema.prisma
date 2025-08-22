@@ -1,0 +1,121 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id
+  email        String   @unique
+  displayName  String?
+  createdAt    DateTime @default(now())
+  devices      Device[]
+  events       Event[]
+  ideas        Idea[]
+  drafts       Draft[]
+  topics       TopicPreference[]
+  trends       ManualTrend[]
+}
+
+model Device {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String?
+  apiKey    String   @unique
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id         String   @id @default(cuid())
+  userId     String
+  url        String
+  urlHash    String
+  title      String?
+  domain     String
+  ms         Int
+  scroll     Float?
+  tsStart    DateTime
+  tsEnd      DateTime
+  source     String
+  createdAt  DateTime @default(now())
+  User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([urlHash])
+  @@index([domain])
+}
+
+model Page {
+  urlHash    String   @id
+  url        String   @unique
+  domain     String
+  title      String?
+  lang       String?
+  lastSeenAt DateTime @default(now())
+  @@index([domain])
+}
+
+model TopicPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String
+  weight    Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ManualTrend {
+  id        String   @id @default(cuid())
+  userId    String
+  topic     String
+  weight    Float
+  note      String?
+  decayAfterDays Int  @default(7)
+  createdAt DateTime @default(now())
+  expiresAt DateTime?
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Idea {
+  id            String   @id @default(cuid())
+  userId        String
+  topic         String
+  sourceUrls    String[]
+  score         Float
+  scoreBreakdown Json
+  status        IdeaStatus @default(PENDING)
+  createdAt     DateTime @default(now())
+  User          User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Drafts        Draft[]
+}
+
+enum IdeaStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  POSTED
+}
+
+model Draft {
+  id        String   @id @default(cuid())
+  userId    String
+  ideaId    String
+  platform  Platform
+  text      String
+  metadata  Json
+  createdAt DateTime @default(now())
+  Idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Platform {
+  TWITTER
+  LINKEDIN
+  BLOG
+  SHORTS
+}
+
+
