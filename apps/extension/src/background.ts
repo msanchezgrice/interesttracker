@@ -59,6 +59,18 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return;
   }
   
+  if (msg.type === 'flush') {
+    console.log('🔍 Flush requested from side panel');
+    flushAll().then(() => {
+      console.log('🔍 Flush completed');
+      sendResponse({ ok: true });
+    }).catch(e => {
+      console.error('🔍 Flush failed:', e);
+      sendResponse({ error: e.message });
+    });
+    return true;
+  }
+  
   if (!tabId) return;
   if (msg.type === 'heartbeat') {
     const st = S.get(tabId) ?? { url: msg.url, startedAt: Date.now(), ms: 0, lastBeat: 0, scrollMax: 0 };
@@ -86,16 +98,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     sendResponse({ ok: true });
   } else if (msg.type === 'finalize') {
     finalize(tabId).then(() => sendResponse({ ok: true }));
-    return true;
-  } else if (msg.type === 'flush') {
-    console.log('🔍 Flush requested from side panel');
-    flushAll().then(() => {
-      console.log('🔍 Flush completed');
-      sendResponse({ ok: true });
-    }).catch(e => {
-      console.error('🔍 Flush failed:', e);
-      sendResponse({ error: e.message });
-    });
     return true;
   }
 });

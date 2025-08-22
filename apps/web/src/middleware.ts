@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export default function middleware() {
+export default function middleware(_req: NextRequest) {
   // Skip auth middleware until Clerk is fully configured
   // TODO: Enable Clerk middleware when keys are added
   return NextResponse.next();
