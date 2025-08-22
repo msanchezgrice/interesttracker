@@ -40,7 +40,7 @@ document.getElementById('openDashboard')?.addEventListener('click', async () => 
   try {
     const u = new URL(url);
     const base = `${u.protocol}//${u.host}`;
-    chrome.tabs.create({ url: base });
+    chrome.tabs.create({ url: `${base}/dashboard` });
   } catch (e) {
     setStatus('Invalid ingest URL');
   }
