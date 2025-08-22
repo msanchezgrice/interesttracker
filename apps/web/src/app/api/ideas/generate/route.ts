@@ -91,7 +91,7 @@ export async function POST() {
             title: bestEvent.title,
             domain: bestEvent.domain,
             sessionLength: bestEvent.ms / 1000,
-            scrollPercentage: bestEvent.scroll,
+            scrollPercentage: bestEvent.scroll || 0,
             interestScore: bestEvent.interestScore || topicData.avgEngagement
           },
           themes: {
