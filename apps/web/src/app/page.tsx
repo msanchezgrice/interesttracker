@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { UserButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function Home() {
   return (
@@ -14,12 +13,7 @@ export default function Home() {
           <a className="hover:text-amber-400" href="#features">Features</a>
           <a className="hover:text-amber-400" href="#how">How it works</a>
           <a className="hover:text-amber-400" href="#download">Download</a>
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-          <SignedOut>
-            <Link className="hover:text-amber-400" href="/sign-in">Sign in</Link>
-          </SignedOut>
+          <Link className="hover:text-amber-400" href="/sign-in">Sign in</Link>
         </div>
       </header>
 

@@ -1,19 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const hasClerkKeys = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY;
-  
-  let userId: string;
-  if (hasClerkKeys) {
-    const { userId: clerkUserId } = await auth();
-    if (!clerkUserId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-    userId = clerkUserId;
-  } else {
-    // Fallback when Clerk isn't configured - use a test user
-    userId = "local-test";
-  }
+  // Use test user until Clerk is configured
+  const userId = "local-test";
 
   const { label } = await req.json().catch(() => ({ label: null }));
   const apiKey = await cryptoRandom(48);

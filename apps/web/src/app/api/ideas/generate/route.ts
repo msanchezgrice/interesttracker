@@ -1,10 +1,9 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  // Use test user until Clerk is configured
+  const userId = "local-test";
 
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
   const events = await prisma.event.findMany({ where: { userId, tsStart: { gte: since } } });
