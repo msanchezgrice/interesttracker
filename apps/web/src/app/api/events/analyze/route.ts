@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const themes = [topic];
     
     // Extract content tags from metadata
-    const contentTags = extractContentTags(metadata, event);
+    const contentTags = extractContentTags(metadata as Record<string, unknown>, event);
     
     // Generate potential ideas (simplified for now)
     const potentialIdeas = generatePotentialIdeas(event, themes, interestScore);
