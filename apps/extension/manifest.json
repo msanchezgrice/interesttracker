@@ -10,7 +10,7 @@
   "side_panel": { "default_path": "sidepanel.html" },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*", "*://*.github.com/*", "*://*.substack.com/*", "*://*.news.ycombinator.com/*"],
+      "matches": ["<all_urls>"],
       "js": ["src/content.ts"],
       "run_at": "document_idle",
       "all_frames": false
