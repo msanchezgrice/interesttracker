@@ -74,7 +74,7 @@ class OpenAIProvider implements LLMProvider {
     const data = await response.json();
     try {
       return JSON.parse(data.choices[0].message.content);
-    } catch (error) {
+    } catch {
       console.error('Failed to parse LLM JSON response:', data.choices[0].message.content);
       throw new Error('Invalid JSON response from LLM');
     }
@@ -84,13 +84,13 @@ class OpenAIProvider implements LLMProvider {
 // Factory function to create the appropriate provider
 export function createLLMProvider(): LLMProvider | null {
   const openaiKey = process.env.OPENAI_API_KEY;
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
 
   if (openaiKey) {
     return new OpenAIProvider(openaiKey);
   }
 
   // Add Anthropic provider here when needed
+  // const anthropicKey = process.env.ANTHROPIC_API_KEY;
   // if (anthropicKey) {
   //   return new AnthropicProvider(anthropicKey);
   // }

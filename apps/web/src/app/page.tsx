@@ -92,22 +92,22 @@ export default function Home() {
       <section className="py-20 px-6 bg-neutral-900/50">
         <div className="max-w-6xl mx-auto">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Content creation shouldn't feel like work
-            </h2>
+                      <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
+            Content creation shouldn&apos;t feel like work
+          </h2>
             <p className="mt-4 text-lg text-neutral-400">
               You consume amazing content every day. You have unique insights. 
-              But when it's time to create, the blank page wins. Sound familiar?
+              But when it&apos;s time to create, the blank page wins. Sound familiar?
             </p>
             
             <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
-              <div className="space-y-3">
-                <div className="text-5xl">😩</div>
-                <h3 className="font-semibold">Writer's Block</h3>
-                <p className="text-sm text-neutral-400">
-                  "What should I post about?" The eternal question that keeps you from sharing your knowledge.
-                </p>
-              </div>
+                        <div className="space-y-3">
+            <div className="text-5xl">😩</div>
+            <h3 className="font-semibold">Writer&apos;s Block</h3>
+            <p className="text-sm text-neutral-400">
+              &ldquo;What should I post about?&rdquo; The eternal question that keeps you from sharing your knowledge.
+            </p>
+          </div>
               <div className="space-y-3">
                 <div className="text-5xl">🎯</div>
                 <h3 className="font-semibold">Missing Opportunities</h3>
@@ -115,13 +115,13 @@ export default function Home() {
                   You read something fascinating but forget to share your unique take on it.
                 </p>
               </div>
-              <div className="space-y-3">
-                <div className="text-5xl">⏰</div>
-                <h3 className="font-semibold">Time Consuming</h3>
-                <p className="text-sm text-neutral-400">
-                  Coming up with ideas and drafting content takes hours you don't have.
-                </p>
-              </div>
+                        <div className="space-y-3">
+            <div className="text-5xl">⏰</div>
+            <h3 className="font-semibold">Time Consuming</h3>
+            <p className="text-sm text-neutral-400">
+              Coming up with ideas and drafting content takes hours you don&apos;t have.
+            </p>
+          </div>
             </div>
           </div>
         </div>

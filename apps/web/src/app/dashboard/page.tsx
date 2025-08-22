@@ -25,9 +25,9 @@ export default function Dashboard() {
       } else {
         setGenerationStatus(`✗ Failed: ${data.error || 'Unknown error'}`);
       }
-    } catch (error) {
-      setGenerationStatus('✗ Failed to generate ideas');
-    } finally {
+          } catch {
+        setGenerationStatus('✗ Failed to generate ideas');
+      } finally {
       setGeneratingIdeas(false);
     }
   };
@@ -43,7 +43,7 @@ export default function Dashboard() {
       } else {
         alert(`Error: ${data.error || 'Failed to generate key'}`);
       }
-    } catch (error) {
+    } catch {
       alert('Error generating device key');
     }
   };

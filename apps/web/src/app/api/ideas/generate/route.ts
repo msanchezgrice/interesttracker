@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateInterestScore, extractTopicFromEvent } from "@/lib/scoring";
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     // Get user - hardcoded for now
     const userId = "local-test";
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Calculate average engagement per topic
-    for (const [topic, data] of topicScores) {
+    for (const [, data] of topicScores) {
       data.avgEngagement = data.totalScore / data.events.length;
     }
 
