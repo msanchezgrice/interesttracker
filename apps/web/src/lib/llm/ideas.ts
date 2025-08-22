@@ -94,7 +94,7 @@ Focus on practical, builder-oriented content that provides value.
 
   try {
     console.log('[Idea Generation] Sending prompt to LLM...');
-    const response = await llm.completeJSON<any>(prompt);
+    const response = await llm.completeJSON<Record<string, unknown>>(prompt);
     console.log('[Idea Generation] Raw LLM response:', JSON.stringify(response, null, 2));
     
     // Handle both response formats
@@ -106,9 +106,9 @@ Focus on practical, builder-oriented content that provides value.
     }
     
     // Map formats to lowercase and handle variations
-    const ideas = rawIdeas.slice(0, 4).map((idea: any) => {
+    const ideas = rawIdeas.slice(0, 4).map((idea: Record<string, unknown>) => {
       // Normalize the format
-      let format = (idea.format || 'tweet').toLowerCase();
+      let format = ((idea.format as string) || 'tweet').toLowerCase();
       if (format.includes('linkedin')) format = 'linkedin';
       if (format.includes('thread')) format = 'thread';
       if (format.includes('blog')) format = 'blog';
@@ -121,7 +121,7 @@ Focus on practical, builder-oriented content that provides value.
       };
     });
     console.log('[Idea Generation] Generated', ideas.length, 'ideas');
-    return ideas;
+    return ideas as ContentIdea[];
   } catch (error) {
     console.error('[Idea Generation] LLM generation failed:', error);
     const fallbackIdeas = generateBasicIdeas(context);
