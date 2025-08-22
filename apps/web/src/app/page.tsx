@@ -18,7 +18,7 @@ export default function Home() {
             <UserButton afterSignOutUrl="/" />
           </SignedIn>
           <SignedOut>
-            <a className="hover:text-amber-400" href="/sign-in">Sign in</a>
+            <Link className="hover:text-amber-400" href="/sign-in">Sign in</Link>
           </SignedOut>
         </div>
       </header>

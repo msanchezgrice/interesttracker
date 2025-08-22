@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   }
 
   const { label } = await req.json().catch(() => ({ label: null }));
-  const apiKey = cryptoRandom(48);
+  const apiKey = await cryptoRandom(48);
 
   // Ensure User record exists
   await prisma.user.upsert({
@@ -34,13 +34,13 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ deviceKey: device.apiKey, ingestUrl });
 }
 
-function cryptoRandom(length: number) {
+async function cryptoRandom(length: number) {
   const bytes = new Uint8Array(length);
   if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
     crypto.getRandomValues(bytes);
   } else {
     // Node.js
-    const nodeCrypto = require("crypto");
+    const nodeCrypto = await import("crypto");
     nodeCrypto.randomFillSync(bytes);
   }
   return Buffer.from(bytes).toString("base64url");

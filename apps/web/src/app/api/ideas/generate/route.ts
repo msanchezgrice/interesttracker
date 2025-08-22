@@ -50,7 +50,7 @@ export async function POST() {
         topic: item.topic,
         sourceUrls: item.urls,
         score: item.score.total,
-        scoreBreakdown: item.score as any,
+        scoreBreakdown: item.score as object,
       },
     });
   }

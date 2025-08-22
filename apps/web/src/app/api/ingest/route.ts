@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const { events } = await req.json();
   if (!Array.isArray(events)) return NextResponse.json({ error: "bad_request" }, { status: 400 });
 
-  const rows = events.map((e: any) => {
+  const rows = events.map((e: { url: string; title?: string; ms: number; scrollDepth?: number; tsStart: number; tsEnd: number }) => {
     const u = new URL(e.url);
     return {
       userId: device.userId,
