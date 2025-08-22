@@ -32,9 +32,21 @@ export interface IdeaGenerationContext {
 export async function generateContentIdeas(
   context: IdeaGenerationContext
 ): Promise<ContentIdea[]> {
+  console.log('[Idea Generation] Starting content idea generation');
+  console.log('[Idea Generation] Context:', {
+    url: context.event.url,
+    title: context.event.title,
+    sessionLength: context.event.sessionLength,
+    scrollPercentage: context.event.scrollPercentage,
+    interestScore: context.event.interestScore,
+    themes: context.themes.themes,
+    recentTopics: context.recentTopics
+  });
+  
   const llm = getLLM();
   
   if (!llm) {
+    console.log('[Idea Generation] No LLM available, using fallback generation');
     return generateBasicIdeas(context);
   }
 
@@ -81,11 +93,23 @@ Focus on practical, builder-oriented content that provides value.
 `;
 
   try {
+    console.log('[Idea Generation] Sending prompt to LLM...');
     const response = await llm.completeJSON<{ ideas: ContentIdea[] }>(prompt);
-    return response.ideas.slice(0, 4);
+    console.log('[Idea Generation] Raw LLM response:', JSON.stringify(response, null, 2));
+    
+    if (!response || !response.ideas || !Array.isArray(response.ideas)) {
+      console.error('[Idea Generation] Invalid LLM response structure');
+      throw new Error('Invalid idea generation response');
+    }
+    
+    const ideas = response.ideas.slice(0, 4);
+    console.log('[Idea Generation] Generated', ideas.length, 'ideas');
+    return ideas;
   } catch (error) {
-    console.error('LLM idea generation failed:', error);
-    return generateBasicIdeas(context);
+    console.error('[Idea Generation] LLM generation failed:', error);
+    const fallbackIdeas = generateBasicIdeas(context);
+    console.log('[Idea Generation] Using', fallbackIdeas.length, 'fallback ideas');
+    return fallbackIdeas;
   }
 }
 

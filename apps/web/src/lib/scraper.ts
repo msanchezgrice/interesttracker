@@ -10,8 +10,11 @@ export interface PageMetadata {
 }
 
 export async function extractPageMetadata(url: string): Promise<PageMetadata> {
+  console.log('[Scraper] Starting metadata extraction for:', url);
+  
   try {
     // Fetch the page HTML
+    console.log('[Scraper] Fetching page HTML...');
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MakerPulse/1.0; +https://makerpulse.app/bot)'
@@ -19,10 +22,12 @@ export async function extractPageMetadata(url: string): Promise<PageMetadata> {
     });
     
     if (!response.ok) {
+      console.error('[Scraper] Fetch failed:', response.status, response.statusText);
       throw new Error(`Failed to fetch: ${response.status}`);
     }
     
     const html = await response.text();
+    console.log('[Scraper] HTML fetched, length:', html.length);
     const $ = cheerio.load(html);
     
     // Extract metadata

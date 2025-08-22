@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateInterestScore, extractTopicFromEvent } from "@/lib/scoring";
+import { generatePotentialIdeas } from "@/lib/llm/ideas";
+import { analyzePageThemes } from "@/lib/llm/themes";
 
 export async function POST() {
   try {
@@ -70,6 +72,54 @@ export async function POST() {
         .sort((a, b) => b.interestScore - a.interestScore)
         .slice(0, 3);
 
+      // Get the best event to base ideas on
+      const bestEvent = topEvents[0];
+      
+      // Generate content ideas using LLM
+      let contentIdeas = [];
+      try {
+        // Get themes if not already analyzed
+        let themes = bestEvent.themes || [];
+        if (!themes.length && bestEvent.metadata) {
+          const themeAnalysis = await analyzePageThemes(bestEvent.metadata as any);
+          themes = themeAnalysis.themes;
+        }
+        
+        const ideaContext = {
+          event: {
+            url: bestEvent.url,
+            title: bestEvent.title,
+            sessionLength: bestEvent.ms / 1000,
+            scrollPercentage: bestEvent.scroll,
+            interestScore: bestEvent.interestScore || topicData.avgEngagement
+          },
+          themes: {
+            themes: themes.length ? themes : [topicData.topic],
+            contentType: 'article',
+            technicalLevel: 'intermediate',
+            keyInsights: [`High engagement with ${topicData.topic} content`]
+          },
+          recentTopics: Array.from(topicScores.keys()).slice(0, 5)
+        };
+        
+        contentIdeas = await generatePotentialIdeas(ideaContext);
+      } catch (error) {
+        console.log('LLM generation failed, using fallback');
+      }
+      
+      // Pick the best idea or create a fallback
+      const bestIdea = contentIdeas[0] || {
+        title: `Insights on ${topicData.topic}`,
+        format: 'tweet',
+        estimatedReach: { score: 70, reasoning: 'Topic shows high engagement' },
+        tags: [topicData.topic.toLowerCase().replace(/\s+/g, '-')],
+        proposedOutput: {
+          platform: 'twitter',
+          content: `Just spent time diving into ${topicData.topic}. The key takeaway: [Add your insight here]\n\nWhat's your experience with this?`,
+          metadata: { hashtags: [topicData.topic.toLowerCase().replace(/\s+/g, '')] }
+        }
+      };
+
       const idea = await prisma.idea.create({
         data: {
           userId,
@@ -86,7 +136,17 @@ export async function POST() {
             }))
           },
           sourceEventIds: topEvents.map(e => e.id),
-          tags: [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated']
+          tags: bestIdea.tags || [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated'],
+          format: bestIdea.format,
+          estimatedReach: bestIdea.estimatedReach?.score || 70,
+          proposedOutput: bestIdea.proposedOutput || bestIdea.draftContent ? {
+            platform: bestIdea.format,
+            content: bestIdea.draftContent || bestIdea.proposedOutput?.content || '',
+            metadata: {
+              hashtags: bestIdea.hashtags || bestIdea.proposedOutput?.metadata?.hashtags || [],
+              angle: bestIdea.angle
+            }
+          } : undefined
         }
       });
 

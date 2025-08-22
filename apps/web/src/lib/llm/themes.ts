@@ -13,10 +13,20 @@ export async function analyzePageThemes(
   metadata: PageMetadata,
   event: { title?: string | null; url: string; domain: string }
 ): Promise<ThemeAnalysis> {
+  console.log('[Theme Analysis] Starting analysis');
+  console.log('[Theme Analysis] Event:', event?.url || 'No URL');
+  console.log('[Theme Analysis] Metadata:', {
+    hasDescription: !!metadata.description,
+    hasKeywords: !!metadata.keywords,
+    hasContent: !!metadata.mainContent,
+    contentLength: metadata.mainContent?.length || 0
+  });
+  
   const llm = getLLM();
   
   // Fallback to basic analysis if no LLM available
   if (!llm) {
+    console.log('[Theme Analysis] No LLM available, using fallback analysis');
     return basicThemeAnalysis(metadata, event);
   }
 
@@ -41,19 +51,26 @@ Focus on accuracy and relevance. Be specific rather than generic.
 `;
 
   try {
+    console.log('[Theme Analysis] Sending prompt to LLM...');
     const analysis = await llm.completeJSON<ThemeAnalysis>(prompt);
+    console.log('[Theme Analysis] Raw LLM response:', JSON.stringify(analysis, null, 2));
     
     // Validate and clean the response
-    return {
-      themes: (analysis.themes || []).slice(0, 4),
-      contentTags: (analysis.contentTags || []).slice(0, 10),
-      contentType: analysis.contentType || 'reference',
-      keyInsights: (analysis.keyInsights || []).slice(0, 3),
-      technicalLevel: analysis.technicalLevel || 'mixed'
+    const cleaned = {
+      themes: (analysis?.themes || []).slice(0, 4),
+      contentTags: (analysis?.contentTags || []).slice(0, 10),
+      contentType: analysis?.contentType || 'reference',
+      keyInsights: (analysis?.keyInsights || []).slice(0, 3),
+      technicalLevel: analysis?.technicalLevel || 'mixed'
     };
+    
+    console.log('[Theme Analysis] Cleaned response:', cleaned);
+    return cleaned;
   } catch (error) {
-    console.error('LLM theme analysis failed:', error);
-    return basicThemeAnalysis(metadata, event);
+    console.error('[Theme Analysis] LLM theme analysis failed:', error);
+    const fallback = basicThemeAnalysis(metadata, event);
+    console.log('[Theme Analysis] Using fallback analysis:', fallback);
+    return fallback;
   }
 }
 

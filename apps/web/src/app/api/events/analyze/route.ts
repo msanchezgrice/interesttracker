@@ -6,10 +6,14 @@ import { analyzePageThemes } from "@/lib/llm/themes";
 import { generateContentIdeas, type IdeaGenerationContext } from "@/lib/llm/ideas";
 
 export async function POST(req: NextRequest) {
+  console.log('[Analyze API] Received analyze request');
+  
   try {
     const { eventId } = await req.json();
+    console.log('[Analyze API] Event ID:', eventId);
     
     if (!eventId) {
+      console.error('[Analyze API] No event ID provided');
       return NextResponse.json({ error: "Event ID required" }, { status: 400 });
     }
     
@@ -25,6 +29,7 @@ export async function POST(req: NextRequest) {
     // Skip if already analyzed (unless force flag is set)
     const { force } = await req.json().catch(() => ({ force: false }));
     if (!force && event.metadataFetched && event.interestScore !== null) {
+      console.log('[Analyze API] Event already analyzed, skipping');
       return NextResponse.json({ 
         message: "Already analyzed",
         event 
@@ -32,15 +37,26 @@ export async function POST(req: NextRequest) {
     }
     
     // Extract metadata
+    console.log('[Analyze API] Extracting metadata...');
     const metadata = await extractPageMetadata(event.url);
+    console.log('[Analyze API] Metadata extracted:', {
+      hasDescription: !!metadata.description,
+      hasKeywords: !!metadata.keywords?.length,
+      hasContent: !!metadata.mainContent
+    });
     
     // Calculate interest score
+    console.log('[Analyze API] Calculating interest score...');
     const interestScore = await calculateInterestScore(event);
+    console.log('[Analyze API] Interest score:', interestScore);
     
     // Analyze themes with LLM
+    console.log('[Analyze API] Analyzing themes...');
     const themeAnalysis = await analyzePageThemes(metadata, event);
+    console.log('[Analyze API] Themes:', themeAnalysis.themes);
     
     // Generate content ideas based on engagement
+    console.log('[Analyze API] Generating content ideas...');
     const ideaContext: IdeaGenerationContext = {
       event: {
         url: event.url,
@@ -55,6 +71,7 @@ export async function POST(req: NextRequest) {
     };
     
     const contentIdeas = await generateContentIdeas(ideaContext);
+    console.log('[Analyze API] Ideas generated:', contentIdeas);
     
     // Transform ideas for storage
     const potentialIdeas = contentIdeas.map(idea => ({
@@ -74,8 +91,8 @@ export async function POST(req: NextRequest) {
       data: {
         metadataFetched: true,
         metadata: metadata as object,
-        themes: themeAnalysis.themes,
-        contentTags: themeAnalysis.contentTags,
+        themes: themeAnalysis?.themes || [],
+        contentTags: themeAnalysis?.contentTags || [],
         interestScore,
         potentialIdeas: potentialIdeas as object
       }
