@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { calculateInterestScore, extractTopicFromEvent } from "@/lib/scoring";
-import { generatePotentialIdeas } from "@/lib/llm/ideas";
+import { generateContentIdeas } from "@/lib/llm/ideas";
 import { analyzePageThemes } from "@/lib/llm/themes";
 
 export async function POST() {
@@ -81,7 +81,7 @@ export async function POST() {
         // Get themes if not already analyzed
         let themes = bestEvent.themes || [];
         if (!themes.length && bestEvent.metadata) {
-          const themeAnalysis = await analyzePageThemes(bestEvent.metadata as any);
+          const themeAnalysis = await analyzePageThemes(bestEvent.metadata as Record<string, unknown>, bestEvent);
           themes = themeAnalysis.themes;
         }
         
@@ -102,8 +102,8 @@ export async function POST() {
           recentTopics: Array.from(topicScores.keys()).slice(0, 5)
         };
         
-        contentIdeas = await generatePotentialIdeas(ideaContext);
-      } catch (error) {
+        contentIdeas = await generateContentIdeas(ideaContext);
+      } catch {
         console.log('LLM generation failed, using fallback');
       }
       
