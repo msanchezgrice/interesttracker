@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   
   let userId: string;
   if (hasClerkKeys) {
-    const { userId: clerkUserId } = auth();
+    const { userId: clerkUserId } = await auth();
     if (!clerkUserId) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
     userId = clerkUserId;
   } else {
