@@ -26,6 +26,8 @@ type EnhancedEvent = {
     };
     angle?: string;
     outline?: string[];
+    draftContent?: string;
+    hashtags?: string[];
   }>;
   description?: string;
   metadataFetched: boolean;
@@ -353,6 +355,23 @@ export default function History() {
                                         <p className="text-xs text-neutral-500 italic">
                                           {idea.estimatedReach.reasoning}
                                         </p>
+                                      )}
+                                      {idea.draftContent && (
+                                        <details className="mt-2">
+                                          <summary className="text-xs text-amber-400 cursor-pointer hover:text-amber-300">
+                                            View draft →
+                                          </summary>
+                                          <div className="mt-2 p-2 bg-neutral-900 rounded text-xs text-neutral-300 whitespace-pre-wrap">
+                                            {idea.draftContent}
+                                            {idea.hashtags && idea.hashtags.length > 0 && (
+                                              <div className="mt-2 flex flex-wrap gap-1">
+                                                {idea.hashtags.map((tag, j) => (
+                                                  <span key={j} className="text-amber-400">#{tag}</span>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </details>
                                       )}
                                     </div>
                                   ))}

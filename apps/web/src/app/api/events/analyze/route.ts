@@ -63,7 +63,9 @@ export async function POST(req: NextRequest) {
       format: idea.format,
       estimatedReach: idea.estimatedReach,
       angle: idea.angle,
-      outline: idea.outline
+      outline: idea.outline,
+      draftContent: idea.draftContent,
+      hashtags: idea.hashtags
     }));
     
     // Update the event

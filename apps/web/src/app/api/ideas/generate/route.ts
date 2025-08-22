@@ -1,62 +1,132 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { calculateInterestScore, extractTopicFromEvent } from "@/lib/scoring";
 
-export async function POST() {
-  // Use test user until Clerk is configured
-  const userId = "local-test";
-
-  const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
-  const events = await prisma.event.findMany({ where: { userId, tsStart: { gte: since } } });
-  const manual = await prisma.manualTrend.findMany({ where: { userId } });
-  
-  console.log('Idea generation:', { userId, eventsCount: events.length, manualTrendsCount: manual.length, since });
-
-  const topicOf = (title: string, url: string) => {
-    const t = (title || "").toLowerCase() + " " + (url || "").toLowerCase();
-    if (t.includes("agent")) return "agents";
-    if (t.includes("rag")) return "RAG";
-    if (t.includes("multimodal")) return "multimodal";
-    return "general AI";
-  };
-
-  const byTopic = new Map<string, { ms: number; urls: Set<string> }>();
-  for (const e of events) {
-    const topic = topicOf(e.title ?? "", e.url);
-    const acc = byTopic.get(topic) ?? { ms: 0, urls: new Set() };
-    acc.ms += e.ms;
-    acc.urls.add(e.url);
-    byTopic.set(topic, acc);
-  }
-
-  function normalize(all: number[], v: number) {
-    const max = Math.max(1, ...all);
-    return Math.min(1, v / max);
-  }
-
-  const values = Array.from(byTopic.entries()).map(([topic, v]) => {
-    const I = normalize(Array.from(byTopic.values()).map((x) => x.ms), v.ms);
-    const m = manual.find((m) => m.topic.toLowerCase() === topic.toLowerCase());
-    const T = m ? m.weight : 0.2;
-    const N = 1.0;
-    const diversityBoost = v.urls.size >= 3 ? 0.05 : 0;
-    const total = 0.5 * T + 0.4 * I + 0.1 * N + diversityBoost;
-    return { topic, score: { total, interest: I, trend: T, novelty: N, diversityBoost }, urls: Array.from(v.urls).slice(0, 5) };
-  });
-
-  const top = values.sort((a, b) => b.score.total - a.score.total).slice(0, 5);
-  for (const item of top) {
-    await prisma.idea.create({
-      data: {
+export async function POST(req: NextRequest) {
+  try {
+    // Get user - hardcoded for now
+    const userId = "local-test";
+    
+    // Get recent high-engagement events
+    const recentEvents = await prisma.event.findMany({
+      where: {
         userId,
-        topic: item.topic,
-        sourceUrls: item.urls,
-        score: item.score.total,
-        scoreBreakdown: item.score as object,
+        tsStart: {
+          gte: new Date(Date.now() - 48 * 60 * 60 * 1000) // Last 48 hours
+        }
       },
+      orderBy: {
+        tsStart: 'desc'
+      },
+      take: 50
     });
+
+    // Calculate scores if not already done
+    const eventsWithScores = await Promise.all(
+      recentEvents.map(async (event) => {
+        const score = event.interestScore || await calculateInterestScore(event);
+        return { ...event, interestScore: score };
+      })
+    );
+
+    // Group by topic and calculate aggregate scores
+    const topicScores = new Map<string, { 
+      topic: string; 
+      totalScore: number; 
+      events: typeof eventsWithScores; 
+      avgEngagement: number;
+    }>();
+
+    for (const event of eventsWithScores) {
+      const topic = extractTopicFromEvent(event);
+      const existing = topicScores.get(topic) || {
+        topic,
+        totalScore: 0,
+        events: [],
+        avgEngagement: 0
+      };
+      
+      existing.totalScore += event.interestScore;
+      existing.events.push(event);
+      topicScores.set(topic, existing);
+    }
+
+    // Calculate average engagement per topic
+    for (const [topic, data] of topicScores) {
+      data.avgEngagement = data.totalScore / data.events.length;
+    }
+
+    // Get top topics by score
+    const topTopics = Array.from(topicScores.values())
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, 5);
+
+    // Generate ideas for top topics
+    const generatedIdeas = [];
+    
+    for (const topicData of topTopics) {
+      // Use the highest scoring events as sources
+      const topEvents = topicData.events
+        .sort((a, b) => b.interestScore - a.interestScore)
+        .slice(0, 3);
+
+      const idea = await prisma.idea.create({
+        data: {
+          userId,
+          topic: topicData.topic,
+          sourceUrls: topEvents.map(e => e.url),
+          score: topicData.avgEngagement / 100, // Normalize to 0-1
+          scoreBreakdown: {
+            interest: topicData.avgEngagement,
+            eventCount: topicData.events.length,
+            topSources: topEvents.map(e => ({
+              url: e.url,
+              title: e.title,
+              score: e.interestScore
+            }))
+          },
+          sourceEventIds: topEvents.map(e => e.id),
+          tags: [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated']
+        }
+      });
+
+      generatedIdeas.push(idea);
+    }
+
+    // Update manual trends based on actual engagement
+    for (const topicData of topTopics) {
+      const existingTrend = await prisma.manualTrend.findFirst({
+        where: {
+          userId,
+          topic: topicData.topic
+        }
+      });
+
+      if (!existingTrend && topicData.avgEngagement > 60) {
+        // Create auto-detected trend
+        await prisma.manualTrend.create({
+          data: {
+            userId,
+            topic: topicData.topic,
+            weight: Math.min(topicData.avgEngagement / 100, 0.9),
+            note: `Auto-detected based on ${topicData.events.length} high-engagement visits`,
+            decayAfterDays: 14
+          }
+        });
+      }
+    }
+
+    return NextResponse.json({
+      message: "Ideas generated successfully",
+      ideas: generatedIdeas,
+      topicsAnalyzed: topTopics.length,
+      eventsProcessed: eventsWithScores.length
+    });
+  } catch (error) {
+    console.error("Failed to generate ideas:", error);
+    return NextResponse.json(
+      { error: "Failed to generate ideas" },
+      { status: 500 }
+    );
   }
-
-  return NextResponse.json({ created: top.length, ideas: top });
 }
-
-

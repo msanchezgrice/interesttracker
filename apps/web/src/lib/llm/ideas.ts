@@ -10,7 +10,9 @@ export interface ContentIdea {
     reasoning: string;
   };
   angle: string;        // Your unique perspective
+  draftContent?: string; // The actual draft
   outline?: string[];   // For longer formats
+  hashtags?: string[];  // Suggested hashtags
 }
 
 export interface IdeaGenerationContext {
@@ -64,7 +66,16 @@ For each idea provide:
 - format: Best format for this idea
 - estimatedReach: score (1-100) and reasoning based on topic trends
 - angle: Their unique take or perspective
+- draftContent: The actual draft content (tweet text, thread bullets, LinkedIn post, or blog intro)
+- hashtags: 3-5 relevant hashtags (no # symbol)
 - outline: (for blog/video only) 3-5 main points
+
+IMPORTANT: For draftContent:
+- Tweet: Full 280 character tweet ready to post
+- Thread: 3-5 tweet thread with numbered points
+- LinkedIn: 150-200 word post with line breaks
+- Blog: 200 word intro paragraph
+- Video: 60 second script with hook + 3 points
 
 Focus on practical, builder-oriented content that provides value.
 `;
@@ -93,7 +104,9 @@ function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
         score: 75,
         reasoning: 'Deep dives on trending topics perform well'
       },
-      angle: 'Personal learning journey with practical takeaways'
+      angle: 'Personal learning journey with practical takeaways',
+      draftContent: `1/ I spent ${Math.round(event.sessionLength / 60)} minutes diving into ${themes.themes[0]}. Here's what blew my mind:\n\n2/ First key insight from the article...\n\n3/ What this means for builders...\n\n4/ How you can apply this today...\n\n5/ Resources to go deeper:`,
+      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'buildinpublic', 'learning']
     });
   }
 
@@ -114,7 +127,9 @@ function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
         'Implementation walkthrough',
         'Common pitfalls to avoid',
         'Next steps and resources'
-      ]
+      ],
+      draftContent: `Just spent ${Math.round(event.sessionLength / 60)} minutes diving into ${themes.themes[0]}, and I finally found an approach that clicks. If you've been struggling with this too, here's what made the difference for me.\n\nThe core insight is actually quite simple once you see it. Most tutorials overcomplicate things, but the key is understanding that...\n\n[Continue with specific implementation details based on the actual content]`,
+      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'tutorial', 'webdev', 'coding']
     });
   }
 
@@ -128,7 +143,9 @@ function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
         score: 70,
         reasoning: 'Timely commentary on news gets engagement'
       },
-      angle: 'Builder perspective on industry news'
+      angle: 'Builder perspective on industry news',
+      draftContent: `Everyone's talking about ${event.title?.slice(0, 50) || themes.themes[0]}, but here's what it really means for builders:\n\nWhile the headlines focus on [mainstream angle], the real opportunity is in [builder angle].\n\nThree immediate actions you can take:\n\n1. [Action 1]\n2. [Action 2]\n3. [Action 3]\n\nThe builders who move on this now will have a significant advantage.\n\nWhat's your take on this development?`,
+      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'startup', 'innovation', 'buildinpublic']
     });
   }
 
@@ -141,7 +158,9 @@ function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
       score: 60,
       reasoning: 'Quick insights are shareable'
     },
-    angle: 'Concise takeaway with link to source'
+    angle: 'Concise takeaway with link to source',
+    draftContent: `${themes.keyInsights[0] || `Fascinating perspective on ${themes.themes[0]}`}\n\nSpent ${Math.round(event.sessionLength / 60)} minutes on this and it was worth every second.\n\n${event.url}`,
+    hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'buildinpublic']
   });
 
   return ideas;
