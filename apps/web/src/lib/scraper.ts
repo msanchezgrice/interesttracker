@@ -45,7 +45,7 @@ export async function extractPageMetadata(url: string): Promise<PageMetadata> {
   }
 }
 
-function extractKeywords($: cheerio.CheerioAPI): string[] {
+function extractKeywords($: cheerio.Root): string[] {
   const keywords: string[] = [];
   
   // From meta keywords
@@ -63,7 +63,7 @@ function extractKeywords($: cheerio.CheerioAPI): string[] {
   return [...new Set(keywords)]; // Remove duplicates
 }
 
-function extractMainContent($: cheerio.CheerioAPI): string {
+function extractMainContent($: cheerio.Root): string {
   // Remove script and style elements
   $('script, style, nav, header, footer').remove();
   
