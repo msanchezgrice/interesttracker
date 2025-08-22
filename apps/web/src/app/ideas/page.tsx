@@ -7,7 +7,7 @@ type Idea = {
   topic: string;
   sourceUrls: string[];
   score: number;
-  scoreBreakdown: any;
+  scoreBreakdown: object;
   status: string;
   createdAt: string;
 };
