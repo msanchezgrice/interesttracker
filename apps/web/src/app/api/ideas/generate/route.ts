@@ -8,6 +8,8 @@ export async function POST() {
   const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
   const events = await prisma.event.findMany({ where: { userId, tsStart: { gte: since } } });
   const manual = await prisma.manualTrend.findMany({ where: { userId } });
+  
+  console.log('Idea generation:', { userId, eventsCount: events.length, manualTrendsCount: manual.length, since });
 
   const topicOf = (title: string, url: string) => {
     const t = (title || "").toLowerCase() + " " + (url || "").toLowerCase();

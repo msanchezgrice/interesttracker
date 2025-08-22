@@ -104,11 +104,10 @@ export default function Dashboard() {
               Check backend health and database connectivity.
             </p>
             <Link 
-              href="/api/health"
-              target="_blank"
+              href="/status"
               className="inline-block px-4 py-2 rounded-md border border-neutral-700 hover:border-neutral-600"
             >
-              Test API
+              View Status
             </Link>
           </div>
         </div>

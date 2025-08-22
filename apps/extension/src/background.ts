@@ -7,20 +7,38 @@ chrome.idle.onStateChanged.addListener((s) => { systemIdle = s; });
 
 // Ensure clicking the toolbar icon opens the side panel
 chrome.runtime.onInstalled.addListener(() => {
-  // Newer API: open side panel on action click if supported
-  // @ts-ignore
-  chrome.sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true });
+  // Set default side panel behavior
+  try {
+    // @ts-ignore - Chrome 114+
+    chrome.sidePanel?.setPanelBehavior?.({ openPanelOnActionClick: true });
+  } catch (e) {
+    console.log('setPanelBehavior not supported, using fallback');
+  }
 });
 
 chrome.action.onClicked.addListener(async (tab) => {
+  console.log('Extension icon clicked, opening side panel');
   try {
     if (!tab.id) return;
-    // Fallback for older Chrome: explicitly set and open the panel
-    // @ts-ignore
-    await chrome.sidePanel?.setOptions?.({ tabId: tab.id, path: 'sidepanel.html', enabled: true });
-    // @ts-ignore
+    // @ts-ignore - Chrome 114+
     await chrome.sidePanel?.open?.({ tabId: tab.id });
-  } catch {}
+    console.log('Side panel opened');
+  } catch (e) {
+    console.error('Failed to open side panel:', e);
+    // Fallback: try setting options first
+    try {
+      // @ts-ignore
+      await chrome.sidePanel?.setOptions?.({ 
+        tabId: tab.id, 
+        path: 'sidepanel.html', 
+        enabled: true 
+      });
+      // @ts-ignore
+      await chrome.sidePanel?.open?.({ tabId: tab.id });
+    } catch (e2) {
+      console.error('Fallback also failed:', e2);
+    }
+  }
 });
 
 chrome.webNavigation.onCommitted.addListener(({tabId, frameId, url}) => {
