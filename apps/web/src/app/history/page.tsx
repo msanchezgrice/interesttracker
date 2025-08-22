@@ -20,6 +20,12 @@ type EnhancedEvent = {
     title: string;
     hook: string;
     format: string;
+    estimatedReach?: {
+      score: number;
+      reasoning: string;
+    };
+    angle?: string;
+    outline?: string[];
   }>;
   description?: string;
   metadataFetched: boolean;
@@ -317,12 +323,37 @@ export default function History() {
                                 </h4>
                                 <div className="space-y-2">
                                   {event.potentialIdeas.map((idea, i) => (
-                                    <div key={i} className="p-3 bg-neutral-800 rounded">
-                                      <p className="font-medium text-sm">{idea.title}</p>
-                                      <p className="text-xs text-neutral-400 mt-1">{idea.hook}</p>
-                                      <span className="inline-block mt-2 px-2 py-1 bg-neutral-700 rounded text-xs">
-                                        {idea.format}
-                                      </span>
+                                    <div key={i} className="p-3 bg-neutral-800 rounded space-y-2">
+                                      <div className="flex items-start justify-between">
+                                        <p className="font-medium text-sm flex-1">{idea.title}</p>
+                                        {idea.estimatedReach && (
+                                          <div className="text-xs text-right ml-2">
+                                            <div className="text-amber-400 font-medium">{idea.estimatedReach.score}/100</div>
+                                            <div className="text-neutral-500">reach</div>
+                                          </div>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-neutral-400">{idea.hook}</p>
+                                      {idea.angle && (
+                                        <p className="text-xs text-neutral-300">
+                                          <span className="text-neutral-500">Angle:</span> {idea.angle}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-2">
+                                        <span className="inline-block px-2 py-1 bg-neutral-700 rounded text-xs">
+                                          {idea.format}
+                                        </span>
+                                        {idea.outline && (
+                                          <span className="text-xs text-neutral-500">
+                                            {idea.outline.length} sections
+                                          </span>
+                                        )}
+                                      </div>
+                                      {idea.estimatedReach?.reasoning && (
+                                        <p className="text-xs text-neutral-500 italic">
+                                          {idea.estimatedReach.reasoning}
+                                        </p>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
