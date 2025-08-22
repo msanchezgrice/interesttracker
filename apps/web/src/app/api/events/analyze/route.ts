@@ -49,11 +49,11 @@ export async function POST(req: NextRequest) {
       where: { id: eventId },
       data: {
         metadataFetched: true,
-        metadata: metadata as any,
+        metadata: metadata as object,
         themes,
         contentTags,
         interestScore,
-        potentialIdeas: potentialIdeas as any
+        potentialIdeas: potentialIdeas as object
       }
     });
     
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function extractContentTags(metadata: any, event: any): string[] {
+function extractContentTags(metadata: Record<string, any>, event: { domain: string; title?: string | null }): string[] {
   const tags = new Set<string>();
   
   // From metadata keywords
@@ -102,7 +102,13 @@ function extractContentTags(metadata: any, event: any): string[] {
   return Array.from(tags).slice(0, 10); // Limit to 10 tags
 }
 
-function generatePotentialIdeas(event: any, themes: string[], interestScore: number): any[] {
+interface PotentialIdea {
+  title: string;
+  hook: string;
+  format: string;
+}
+
+function generatePotentialIdeas(event: { ms: number; domain: string; scroll?: number | null; title?: string | null }, themes: string[], interestScore: number): PotentialIdea[] {
   // Simple idea generation (will be enhanced with LLM)
   const ideas = [];
   

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
+// import { auth } from "@clerk/nextjs/server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -53,9 +53,9 @@ export async function GET(req: NextRequest) {
       date: event.tsStart.toISOString(),
       formattedDate: new Date(event.tsStart).toLocaleString(),
       // Extract metadata safely
-      description: (event.metadata as any)?.description || null,
-      image: (event.metadata as any)?.ogImage || null,
-      author: (event.metadata as any)?.author || null,
+      description: (event.metadata as Record<string, any>)?.description || null,
+      image: (event.metadata as Record<string, any>)?.ogImage || null,
+      author: (event.metadata as Record<string, any>)?.author || null,
       // Default values for new fields
       themes: event.themes || [],
       contentTags: event.contentTags || [],

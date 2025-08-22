@@ -16,7 +16,11 @@ type EnhancedEvent = {
   themes: string[];
   contentTags: string[];
   interestScore: number;
-  potentialIdeas: any[];
+  potentialIdeas: Array<{
+    title: string;
+    hook: string;
+    format: string;
+  }>;
   description?: string;
   metadataFetched: boolean;
 };
@@ -31,7 +35,7 @@ export default function History() {
 
   useEffect(() => {
     fetchEvents();
-  }, [sortBy, sortOrder]);
+  }, [sortBy, sortOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchEvents = async () => {
     try {
@@ -312,7 +316,7 @@ export default function History() {
                                   Potential Content Ideas
                                 </h4>
                                 <div className="space-y-2">
-                                  {event.potentialIdeas.map((idea: any, i: number) => (
+                                  {event.potentialIdeas.map((idea, i) => (
                                     <div key={i} className="p-3 bg-neutral-800 rounded">
                                       <p className="font-medium text-sm">{idea.title}</p>
                                       <p className="text-xs text-neutral-400 mt-1">{idea.hook}</p>
