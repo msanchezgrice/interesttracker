@@ -42,9 +42,20 @@ model Event {
   tsEnd      DateTime
   source     String
   createdAt  DateTime @default(now())
+  
+  // Enhanced tracking fields
+  metadataFetched  Boolean  @default(false)
+  metadata         Json?    // { description, keywords, ogImage, author, publishedDate }
+  themes           String[]
+  contentTags      String[]
+  interestScore    Int?     // 0-100
+  potentialIdeas   Json?    // Array of { title, hook, format }
+  
   User       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([urlHash])
   @@index([domain])
+  @@index([interestScore])
+  @@index([themes])
 }
 
 model Page {
@@ -88,6 +99,14 @@ model Idea {
   scoreBreakdown Json
   status        IdeaStatus @default(PENDING)
   createdAt     DateTime @default(now())
+  
+  // New fields for better idea generation
+  format         Platform?
+  estimatedReach Json?     // { score: 0-100, reasoning: string }
+  tags           String[]
+  proposedOutput Json?     // { platform, content, metadata }
+  sourceEventIds String[]
+  
   User          User @relation(fields: [userId], references: [id], onDelete: Cascade)
   Drafts        Draft[]
 }
