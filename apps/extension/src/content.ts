@@ -2,8 +2,16 @@ const HEARTBEAT_MS = 15000;
 let lastUserEvent = Date.now();
 let timer: number | null = null;
 
-const visible = () => !document.hidden && document.hasFocus();
-const userActive = () => Date.now() - lastUserEvent < 20000;
+const visible = () => {
+  const isVisible = !document.hidden && document.hasFocus();
+  console.log('🔍 Visibility check:', { hidden: document.hidden, hasFocus: document.hasFocus(), isVisible });
+  return isVisible;
+};
+const userActive = () => {
+  const isActive = Date.now() - lastUserEvent < 20000;
+  console.log('🔍 User activity check:', { lastUserEvent: new Date(lastUserEvent).toISOString(), isActive, timeSince: Date.now() - lastUserEvent });
+  return isActive;
+};
 const scrollDepth = () => {
   const h = document.documentElement;
   const s = (window.scrollY + window.innerHeight) / (h.scrollHeight || 1);

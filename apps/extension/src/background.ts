@@ -64,7 +64,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     const st = S.get(tabId) ?? { url: msg.url, startedAt: Date.now(), ms: 0, lastBeat: 0, scrollMax: 0 };
     const now = Date.now();
     const engaged = msg.visible && systemIdle === 'active' && msg.userActive;
-    if (engaged && st.lastBeat && (now - st.lastBeat) <= 20000) st.ms += 15000;
+    
+    console.log('🔍 Engagement check:', { 
+      visible: msg.visible, 
+      systemIdle, 
+      userActive: msg.userActive, 
+      engaged,
+      timeSinceLastBeat: st.lastBeat ? now - st.lastBeat : 'first beat'
+    });
+    
+    if (engaged && st.lastBeat && (now - st.lastBeat) <= 20000) {
+      st.ms += 15000;
+      console.log('🔍 Awarded 15s, total:', st.ms / 1000 + 's');
+    }
+    
     st.lastBeat = now;
     st.title = msg.title;
     st.scrollMax = Math.max(st.scrollMax, msg.scrollDepth ?? 0);
