@@ -55,13 +55,21 @@ Focus on accuracy and relevance. Be specific rather than generic.
     const analysis = await llm.completeJSON<ThemeAnalysis>(prompt);
     console.log('[Theme Analysis] Raw LLM response:', JSON.stringify(analysis, null, 2));
     
+    // Handle both response formats (direct or nested)
+    const responseData = analysis as any;
+    const themes = responseData.themes || responseData.main_themes || [];
+    const contentTags = responseData.contentTags || responseData.content_tags || [];
+    const contentType = responseData.contentType || responseData.content_type || 'reference';
+    const keyInsights = responseData.keyInsights || responseData.key_insights || [];
+    const technicalLevel = responseData.technicalLevel || responseData.technical_level || 'mixed';
+    
     // Validate and clean the response
     const cleaned = {
-      themes: (analysis?.themes || []).slice(0, 4),
-      contentTags: (analysis?.contentTags || []).slice(0, 10),
-      contentType: analysis?.contentType || 'reference',
-      keyInsights: (analysis?.keyInsights || []).slice(0, 3),
-      technicalLevel: analysis?.technicalLevel || 'mixed'
+      themes: themes.slice(0, 4),
+      contentTags: contentTags.slice(0, 10),
+      contentType: contentType as ThemeAnalysis['contentType'],
+      keyInsights: keyInsights.slice(0, 3),
+      technicalLevel: technicalLevel as ThemeAnalysis['technicalLevel']
     };
     
     console.log('[Theme Analysis] Cleaned response:', cleaned);

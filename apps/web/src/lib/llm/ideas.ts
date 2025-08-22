@@ -94,15 +94,32 @@ Focus on practical, builder-oriented content that provides value.
 
   try {
     console.log('[Idea Generation] Sending prompt to LLM...');
-    const response = await llm.completeJSON<{ ideas: ContentIdea[] }>(prompt);
+    const response = await llm.completeJSON<any>(prompt);
     console.log('[Idea Generation] Raw LLM response:', JSON.stringify(response, null, 2));
     
-    if (!response || !response.ideas || !Array.isArray(response.ideas)) {
+    // Handle both response formats
+    const rawIdeas = response?.ideas || response?.contentIdeas || response?.content_ideas;
+    
+    if (!response || !rawIdeas || !Array.isArray(rawIdeas)) {
       console.error('[Idea Generation] Invalid LLM response structure');
       throw new Error('Invalid idea generation response');
     }
     
-    const ideas = response.ideas.slice(0, 4);
+    // Map formats to lowercase and handle variations
+    const ideas = rawIdeas.slice(0, 4).map((idea: any) => {
+      // Normalize the format
+      let format = (idea.format || 'tweet').toLowerCase();
+      if (format.includes('linkedin')) format = 'linkedin';
+      if (format.includes('thread')) format = 'thread';
+      if (format.includes('blog')) format = 'blog';
+      if (format.includes('video') || format.includes('shorts')) format = 'video';
+      if (format.includes('tweet') || format === 'twitter') format = 'tweet';
+      
+      return {
+        ...idea,
+        format: format as ContentIdea['format']
+      };
+    });
     console.log('[Idea Generation] Generated', ideas.length, 'ideas');
     return ideas;
   } catch (error) {
@@ -117,28 +134,32 @@ Focus on practical, builder-oriented content that provides value.
 function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
   const ideas: ContentIdea[] = [];
   const { event, themes } = context;
+  
+  // Ensure we have at least one theme
+  const mainTheme = themes.themes?.[0] || 'this topic';
+  const themeTag = mainTheme.toLowerCase().replace(/\s+/g, '');
 
   // High engagement = thread opportunity
   if (event.interestScore > 70) {
     ideas.push({
-      title: `Deep dive into ${themes.themes[0]}`,
-      hook: `I spent ${Math.round(event.sessionLength / 60)} minutes diving into ${themes.themes[0]}. Here's what blew my mind:`,
+      title: `Deep dive into ${mainTheme}`,
+      hook: `I spent ${Math.round(event.sessionLength / 60)} minutes diving into ${mainTheme}. Here's what blew my mind:`,
       format: 'thread',
       estimatedReach: {
         score: 75,
         reasoning: 'Deep dives on trending topics perform well'
       },
       angle: 'Personal learning journey with practical takeaways',
-      draftContent: `1/ I spent ${Math.round(event.sessionLength / 60)} minutes diving into ${themes.themes[0]}. Here's what blew my mind:\n\n2/ First key insight from the article...\n\n3/ What this means for builders...\n\n4/ How you can apply this today...\n\n5/ Resources to go deeper:`,
-      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'buildinpublic', 'learning']
+      draftContent: `1/ I spent ${Math.round(event.sessionLength / 60)} minutes diving into ${mainTheme}. Here's what blew my mind:\n\n2/ First key insight from the article...\n\n3/ What this means for builders...\n\n4/ How you can apply this today...\n\n5/ Resources to go deeper:`,
+      hashtags: [themeTag, 'buildinpublic', 'learning']
     });
   }
 
   // Tutorial content = how-to post
   if (themes.contentType === 'tutorial') {
     ideas.push({
-      title: `How to implement ${themes.themes[0]} (practical guide)`,
-      hook: `Just learned an elegant approach to ${themes.themes[0]}. Here's how you can implement it:`,
+      title: `How to implement ${mainTheme} (practical guide)`,
+      hook: `Just learned an elegant approach to ${mainTheme}. Here's how you can implement it:`,
       format: 'blog',
       estimatedReach: {
         score: 80,
@@ -152,39 +173,39 @@ function generateBasicIdeas(context: IdeaGenerationContext): ContentIdea[] {
         'Common pitfalls to avoid',
         'Next steps and resources'
       ],
-      draftContent: `Just spent ${Math.round(event.sessionLength / 60)} minutes diving into ${themes.themes[0]}, and I finally found an approach that clicks. If you've been struggling with this too, here's what made the difference for me.\n\nThe core insight is actually quite simple once you see it. Most tutorials overcomplicate things, but the key is understanding that...\n\n[Continue with specific implementation details based on the actual content]`,
-      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'tutorial', 'webdev', 'coding']
+      draftContent: `Just spent ${Math.round(event.sessionLength / 60)} minutes diving into ${mainTheme}, and I finally found an approach that clicks. If you've been struggling with this too, here's what made the difference for me.\n\nThe core insight is actually quite simple once you see it. Most tutorials overcomplicate things, but the key is understanding that...\n\n[Continue with specific implementation details based on the actual content]`,
+      hashtags: [themeTag, 'tutorial', 'webdev', 'coding']
     });
   }
 
   // News/announcement = hot take
   if (themes.contentType === 'news' || themes.contentType === 'product') {
     ideas.push({
-      title: `Why ${themes.themes[0]} matters for builders`,
-      hook: `Everyone's talking about ${event.title?.slice(0, 50) || themes.themes[0]}, but here's what it really means for builders:`,
+      title: `Why ${mainTheme} matters for builders`,
+      hook: `Everyone's talking about ${event.title?.slice(0, 50) || mainTheme}, but here's what it really means for builders:`,
       format: 'linkedin',
       estimatedReach: {
         score: 70,
         reasoning: 'Timely commentary on news gets engagement'
       },
       angle: 'Builder perspective on industry news',
-      draftContent: `Everyone's talking about ${event.title?.slice(0, 50) || themes.themes[0]}, but here's what it really means for builders:\n\nWhile the headlines focus on [mainstream angle], the real opportunity is in [builder angle].\n\nThree immediate actions you can take:\n\n1. [Action 1]\n2. [Action 2]\n3. [Action 3]\n\nThe builders who move on this now will have a significant advantage.\n\nWhat's your take on this development?`,
-      hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'startup', 'innovation', 'buildinpublic']
+      draftContent: `Everyone's talking about ${event.title?.slice(0, 50) || mainTheme}, but here's what it really means for builders:\n\nWhile the headlines focus on [mainstream angle], the real opportunity is in [builder angle].\n\nThree immediate actions you can take:\n\n1. [Action 1]\n2. [Action 2]\n3. [Action 3]\n\nThe builders who move on this now will have a significant advantage.\n\nWhat's your take on this development?`,
+      hashtags: [themeTag, 'startup', 'innovation', 'buildinpublic']
     });
   }
 
   // Always include a tweet option
   ideas.push({
-    title: `Quick insight on ${themes.themes[0]}`,
-    hook: `${themes.keyInsights[0] || `Interesting perspective on ${themes.themes[0]}`} ${event.url}`,
+    title: `Quick insight on ${mainTheme}`,
+    hook: `${themes.keyInsights[0] || `Interesting perspective on ${mainTheme}`} ${event.url}`,
     format: 'tweet',
     estimatedReach: {
       score: 60,
       reasoning: 'Quick insights are shareable'
     },
     angle: 'Concise takeaway with link to source',
-    draftContent: `${themes.keyInsights[0] || `Fascinating perspective on ${themes.themes[0]}`}\n\nSpent ${Math.round(event.sessionLength / 60)} minutes on this and it was worth every second.\n\n${event.url}`,
-    hashtags: [themes.themes[0].toLowerCase().replace(/\s+/g, ''), 'buildinpublic']
+    draftContent: `${themes.keyInsights[0] || `Fascinating perspective on ${mainTheme}`}\n\nSpent ${Math.round(event.sessionLength / 60)} minutes on this and it was worth every second.\n\n${event.url}`,
+    hashtags: [themeTag, 'buildinpublic']
   });
 
   return ideas;
