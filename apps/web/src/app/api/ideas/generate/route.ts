@@ -96,6 +96,7 @@ export async function POST() {
           },
           themes: {
             themes: themes.length ? themes : [topicData.topic],
+            contentTags: bestEvent.contentTags || [],
             contentType: 'article',
             technicalLevel: 'intermediate',
             keyInsights: [`High engagement with ${topicData.topic} content`]
