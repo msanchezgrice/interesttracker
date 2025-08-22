@@ -89,6 +89,7 @@ export async function POST() {
           event: {
             url: bestEvent.url,
             title: bestEvent.title,
+            domain: bestEvent.domain,
             sessionLength: bestEvent.ms / 1000,
             scrollPercentage: bestEvent.scroll,
             interestScore: bestEvent.interestScore || topicData.avgEngagement
