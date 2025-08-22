@@ -41,13 +41,31 @@ async function beat() {
     scrollDepth: scrollDepth()
   };
   console.log('Sending heartbeat:', beatData);
-  chrome.runtime.sendMessage(beatData);
+  try {
+    chrome.runtime.sendMessage(beatData, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('Heartbeat error:', chrome.runtime.lastError);
+      } else {
+        console.log('Heartbeat response:', response);
+      }
+    });
+  } catch (e) {
+    console.error('Failed to send heartbeat:', e);
+  }
 }
 
 function start() { if (timer) clearInterval(timer); beat(); timer = window.setInterval(beat, HEARTBEAT_MS); }
 
 document.addEventListener('visibilitychange', () => { if (visible()) start(); });
-window.addEventListener('beforeunload', () => chrome.runtime.sendMessage({ type: 'finalize' }));
+window.addEventListener('beforeunload', () => {
+  try {
+    chrome.runtime.sendMessage({ type: 'finalize' });
+  } catch (e) {
+    console.error('Failed to send finalize:', e);
+  }
+});
+
+console.log('Content script loaded on:', location.href);
 start();
 
 
