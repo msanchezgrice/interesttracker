@@ -62,23 +62,43 @@ async function finalize(tabId: number) {
     url: st.url, title: st.title, ms: st.ms, scrollDepth: st.scrollMax,
     tsStart: st.startedAt, tsEnd: Date.now()
   };
+  console.log('Finalizing session:', rec);
   S.delete(tabId);
   const { buffer = [] } = await chrome.storage.local.get('buffer');
   buffer.push(rec);
   await chrome.storage.local.set({ buffer });
+  console.log('Added to buffer, total events:', buffer.length);
 }
 
 async function flushAll() {
   const { buffer = [], deviceKey, ingestUrl } = await chrome.storage.local.get(['buffer','deviceKey','ingestUrl']);
-  if (!buffer.length || !ingestUrl || !deviceKey) return;
+  console.log('FlushAll:', { bufferCount: buffer.length, hasDeviceKey: !!deviceKey, ingestUrl });
+  
+  if (!buffer.length) {
+    console.log('No events to flush');
+    return;
+  }
+  if (!ingestUrl || !deviceKey) {
+    console.log('Missing config:', { ingestUrl: !!ingestUrl, deviceKey: !!deviceKey });
+    return;
+  }
+  
   try {
-    await fetch(ingestUrl, {
+    console.log('Sending events:', buffer);
+    const response = await fetch(ingestUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-device-key': deviceKey },
       body: JSON.stringify({ events: buffer })
     });
-    await chrome.storage.local.set({ buffer: [] });
+    const result = await response.json();
+    console.log('Flush response:', response.status, result);
+    
+    if (response.ok) {
+      await chrome.storage.local.set({ buffer: [] });
+      console.log('Buffer cleared');
+    }
   } catch (e) {
+    console.error('Flush error:', e);
     // Keep buffer; retry on next suspend
   }
 }

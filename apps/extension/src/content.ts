@@ -16,22 +16,32 @@ const scrollDepth = () => {
 
 async function beat() {
   const { paused = false, allowlist = [] } = await chrome.storage.local.get(['paused','allowlist']);
-  if (paused) return;
+  if (paused) {
+    console.log('Paused, skipping beat');
+    return;
+  }
+  
   try {
     const host = location.hostname.replace(/^www\./,'');
     if (Array.isArray(allowlist) && allowlist.length) {
       const allowed = allowlist.some((d: string) => host.endsWith(d));
-      if (!allowed) return;
+      if (!allowed) {
+        console.log('Host not in allowlist:', host, 'allowlist:', allowlist);
+        return;
+      }
     }
   } catch {}
-  chrome.runtime.sendMessage({
+  
+  const beatData = {
     type: 'heartbeat',
     url: location.href,
     title: document.title,
     visible: visible(),
     userActive: userActive(),
     scrollDepth: scrollDepth()
-  });
+  };
+  console.log('Sending heartbeat:', beatData);
+  chrome.runtime.sendMessage(beatData);
 }
 
 function start() { if (timer) clearInterval(timer); beat(); timer = window.setInterval(beat, HEARTBEAT_MS); }
