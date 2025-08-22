@@ -5,42 +5,244 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MakerPulse</title>
     <style>
-      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 12px; }
-      .row { display:flex; gap:8px; align-items:center; }
-      label { font-size:12px; color:#555 }
-      input[type="text"], input[type="url"] { width:100%; padding:6px; }
-      button { padding:6px 10px; }
-      small { color:#666 }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+        background: #0a0a0a;
+        color: #fafafa;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+      
+      .container {
+        padding: 20px;
+      }
+      
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+      }
+      
+      .logo {
+        width: 32px;
+        height: 32px;
+        background: #f59e0b;
+        border-radius: 6px;
+      }
+      
+      h1 {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: #a3a3a3;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      input[type="text"],
+      input[type="url"] {
+        width: 100%;
+        padding: 10px 12px;
+        background: #171717;
+        border: 1px solid #262626;
+        border-radius: 6px;
+        color: #fafafa;
+        font-size: 14px;
+        transition: all 0.2s;
+      }
+      
+      input[type="text"]:focus,
+      input[type="url"]:focus {
+        outline: none;
+        border-color: #f59e0b;
+        background: #1c1c1c;
+      }
+      
+      input[type="text"]::placeholder,
+      input[type="url"]::placeholder {
+        color: #525252;
+      }
+      
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px;
+        background: #171717;
+        border: 1px solid #262626;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      .checkbox-group:hover {
+        background: #1c1c1c;
+        border-color: #404040;
+      }
+      
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: #f59e0b;
+        cursor: pointer;
+      }
+      
+      .checkbox-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #fafafa;
+        cursor: pointer;
+        user-select: none;
+      }
+      
+      .button-group {
+        display: flex;
+        gap: 8px;
+        margin-top: 24px;
+      }
+      
+      button {
+        flex: 1;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      
+      button:active {
+        transform: scale(0.98);
+      }
+      
+      #save {
+        background: #f59e0b;
+        color: #0a0a0a;
+      }
+      
+      #save:hover {
+        background: #d97706;
+      }
+      
+      #flush {
+        background: #262626;
+        color: #fafafa;
+        border: 1px solid #404040;
+      }
+      
+      #flush:hover {
+        background: #404040;
+      }
+      
+      #openDashboard {
+        background: #262626;
+        color: #fafafa;
+        border: 1px solid #404040;
+      }
+      
+      #openDashboard:hover {
+        background: #404040;
+      }
+      
+      .status {
+        margin-top: 16px;
+        padding: 12px;
+        background: #171717;
+        border-radius: 6px;
+        font-size: 12px;
+        color: #a3a3a3;
+        text-align: center;
+        min-height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      .status.success {
+        color: #10b981;
+        background: #064e3b1a;
+      }
+      
+      .status.error {
+        color: #ef4444;
+        background: #7f1d1d1a;
+      }
+      
+      .info-text {
+        font-size: 11px;
+        color: #525252;
+        margin-top: 4px;
+      }
+      
+      /* Divider */
+      .divider {
+        height: 1px;
+        background: #262626;
+        margin: 20px 0;
+      }
     </style>
   </head>
   <body>
-    <h3>MakerPulse</h3>
-    <div class="row">
-      <label>Device Key</label>
+    <div class="container">
+      <div class="header">
+        <div class="logo"></div>
+        <h1>MakerPulse</h1>
+      </div>
+      
+      <div class="form-group">
+        <label>Device Key</label>
+        <input id="deviceKey" type="text" placeholder="Paste your device key" />
+        <p class="info-text">Get this from your dashboard</p>
+      </div>
+      
+      <div class="form-group">
+        <label>API Endpoint</label>
+        <input id="ingestUrl" type="url" placeholder="https://interesttracker.vercel.app/api/ingest" />
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input id="paused" type="checkbox" />
+          <label for="paused" class="checkbox-label">Pause Tracking</label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Track Only These Sites</label>
+        <input id="allowlist" type="text" placeholder="youtube.com, github.com, twitter.com" />
+        <p class="info-text">Leave empty to track all sites</p>
+      </div>
+      
+      <div class="button-group">
+        <button id="save">Save</button>
+        <button id="flush">Sync</button>
+        <button id="openDashboard">Dashboard</button>
+      </div>
+      
+      <div id="status" class="status"></div>
     </div>
-    <input id="deviceKey" type="text" placeholder="paste from /api/devices/init" />
-    <div class="row">
-      <label>Ingest URL</label>
-    </div>
-    <input id="ingestUrl" type="url" placeholder="https://your.app/api/ingest" />
-
-    <div class="row" style="margin-top:8px;">
-      <label><input id="paused" type="checkbox" /> Paused</label>
-    </div>
-    <div class="row" style="margin-top:8px;">
-      <label>Allowlist domains (comma-separated)</label>
-    </div>
-    <input id="allowlist" type="text" placeholder="youtube.com, substack.com, github.com" />
-
-    <div class="row" style="margin-top:12px;">
-      <button id="save">Save</button>
-      <button id="flush">Flush</button>
-      <button id="openDashboard">Open Dashboard</button>
-    </div>
-
-    <p><small id="status"></small></p>
+    
     <script type="module" src="src/sidepanel.ts"></script>
   </body>
-  </html>
-
-
+</html>

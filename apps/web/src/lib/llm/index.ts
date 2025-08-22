@@ -15,7 +15,7 @@ class OpenAIProvider implements LLMProvider {
   private apiKey: string;
   private defaultModel: string;
 
-  constructor(apiKey: string, defaultModel = 'gpt-4-turbo-preview') {
+  constructor(apiKey: string, defaultModel = 'gpt-4o') {
     this.apiKey = apiKey;
     this.defaultModel = defaultModel;
   }
@@ -47,18 +47,35 @@ class OpenAIProvider implements LLMProvider {
   }
 
   async completeJSON<T>(prompt: string, options?: CompletionOptions): Promise<T> {
-    const jsonPrompt = `${prompt}\n\nRespond with valid JSON only, no markdown formatting.`;
-    const response = await this.complete(jsonPrompt, {
-      ...options,
-      temperature: options?.temperature || 0.3, // Lower temp for structured output
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: options?.model || this.defaultModel,
+        messages: [
+          { role: 'system', content: 'You are a helpful AI assistant. Always respond with valid JSON only. Do not include any markdown formatting, code blocks, or explanations outside the JSON.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: options?.temperature || 0.3,
+        max_tokens: options?.maxTokens || 2000,
+        response_format: { type: "json_object" }
+      }),
     });
 
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
     try {
-      // Clean up common JSON formatting issues
-      const cleaned = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      return JSON.parse(cleaned);
+      return JSON.parse(data.choices[0].message.content);
     } catch (error) {
-      console.error('Failed to parse LLM JSON response:', response);
+      console.error('Failed to parse LLM JSON response:', data.choices[0].message.content);
       throw new Error('Invalid JSON response from LLM');
     }
   }
