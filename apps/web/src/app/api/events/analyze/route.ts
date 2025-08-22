@@ -70,12 +70,13 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function extractContentTags(metadata: Record<string, any>, event: { domain: string; title?: string | null }): string[] {
+function extractContentTags(metadata: Record<string, unknown>, event: { domain: string; title?: string | null }): string[] {
   const tags = new Set<string>();
   
   // From metadata keywords
-  if (metadata.keywords?.length) {
-    metadata.keywords.forEach((k: string) => tags.add(k.toLowerCase()));
+  const keywords = metadata.keywords as string[] | undefined;
+  if (keywords?.length) {
+    keywords.forEach((k: string) => tags.add(k.toLowerCase()));
   }
   
   // From domain
@@ -85,7 +86,8 @@ function extractContentTags(metadata: Record<string, any>, event: { domain: stri
   if (event.domain.includes('news.ycombinator.com')) tags.add('news');
   
   // From title/content analysis (basic for now)
-  const text = `${event.title || ''} ${metadata.description || ''}`.toLowerCase();
+  const description = metadata.description as string | undefined;
+  const text = `${event.title || ''} ${description || ''}`.toLowerCase();
   
   if (text.includes('tutorial')) tags.add('tutorial');
   if (text.includes('guide')) tags.add('guide');

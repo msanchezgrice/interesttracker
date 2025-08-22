@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export default function middleware() {
   // Skip auth middleware until Clerk is fully configured
