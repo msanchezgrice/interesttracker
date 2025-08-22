@@ -76,7 +76,7 @@ export async function POST() {
       const bestEvent = topEvents[0];
       
       // Generate content ideas using LLM
-      let contentIdeas = [];
+      let contentIdeas: unknown[] = [];
       try {
         // Get themes if not already analyzed
         let themes = bestEvent.themes || [];
