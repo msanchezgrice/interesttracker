@@ -140,3 +140,6 @@ export function getLLM(): LLMProvider | null {
   }
   return llmInstance;
 }
+
+// Export a singleton OpenAI provider for direct use
+export const openaiProvider = process.env.OPENAI_API_KEY ? new OpenAIProvider(process.env.OPENAI_API_KEY) : null;

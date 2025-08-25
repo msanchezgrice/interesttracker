@@ -394,7 +394,7 @@ export default function SettingsPage() {
                 </div>
               </div>
               <p className="text-xs text-neutral-500 mt-1">
-                We'll extract your skills and expertise from your resume
+                We&apos;ll extract your skills and expertise from your resume
               </p>
             </div>
 

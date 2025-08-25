@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { prisma } from '@/lib/prisma';
-import { openaiProvider } from '@/lib/llm';
-import { geminiProvider } from '@/lib/llm/gemini-provider';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,8 +19,7 @@ export async function POST(req: NextRequest) {
 
     console.log('[Resume Upload] Processing file:', file.name, 'Type:', file.type, 'Size:', file.size);
 
-    let extractedText = '';
-    let expertise: string[] = [];
+
 
     try {
       // For PDFs and images, we'll use Gemini with appropriate extraction
@@ -35,36 +31,7 @@ export async function POST(req: NextRequest) {
           text: ''
         });
       } else if (file.type.startsWith('image/')) {
-        // For images, we can use Gemini's vision capabilities
-        const bytes = await file.arrayBuffer();
-        const base64 = Buffer.from(bytes).toString('base64');
-        
-        const prompt = `Extract all text from this resume image. Then extract professional expertise from it.
-
-Return a JSON object with two fields:
-1. "text": The full text content of the resume
-2. "expertise": An array of 10-15 specific skills, technologies, and areas of expertise
-
-Focus on:
-- Technical skills (programming languages, frameworks, tools)
-- Domain expertise (industries, methodologies)
-- Professional competencies
-- Notable achievements or specializations
-
-Format: {"text": "full resume text...", "expertise": ["skill1", "skill2", "skill3"]}`;
-
-        const response = await geminiProvider.completeJSON<{text: string, expertise: string[]}>(
-          prompt,
-          {
-            temperature: 0.3,
-            maxTokens: 2000,
-            model: 'gemini-2.0-flash-exp', // Using the vision model
-            // We'll need to pass the image as part of the content
-          }
-        );
-
-        // Note: This is a simplified version. In production, you'd need to properly
-        // handle image uploads to Gemini's vision API
+        // For images, we'll need to implement vision API support
         return NextResponse.json({
           error: 'Image processing requires additional setup. Please copy and paste your resume text instead.',
           text: ''

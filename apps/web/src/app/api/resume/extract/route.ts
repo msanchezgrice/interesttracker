@@ -38,6 +38,13 @@ Limit to 10-15 most relevant skills.
 Return ONLY the JSON array, no markdown, no explanations.`;
 
     try {
+      if (!openaiProvider) {
+        return NextResponse.json(
+          { error: 'AI service not configured' },
+          { status: 503 }
+        );
+      }
+
       const response = await openaiProvider.completeJSON<string[]>(prompt, {
         temperature: 0.3,
         maxTokens: 500

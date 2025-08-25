@@ -129,9 +129,10 @@ export class GeminiProvider {
       
       try {
         return JSON.parse(jsonStr.trim());
-      } catch (error) {
+      } catch (e) {
         console.error('[Gemini JSON] Failed to parse JSON:', jsonStr);
         console.error('[Gemini JSON] Original response:', textContent);
+        console.error('[Gemini JSON] Parse error:', e);
         throw new Error('Failed to parse JSON response from Gemini');
       }
     }
