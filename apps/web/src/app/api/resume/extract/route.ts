@@ -27,10 +27,9 @@ Focus on:
 - Professional competencies
 - Notable achievements or specializations
 
-Format: ["skill1", "skill2", "skill3"]
-Limit to 10-15 most relevant skills.
-
-Return ONLY the JSON array, no markdown, no explanations.`;
+Return ONLY a JSON array in this exact format: ["skill1", "skill2", "skill3"]
+Do NOT wrap it in an object like {skills: [...]}, just return the array directly.
+Limit to 10-15 most relevant skills.`;
 
     try {
       if (!openaiProvider) {
@@ -40,12 +39,19 @@ Return ONLY the JSON array, no markdown, no explanations.`;
         );
       }
 
-      const response = await openaiProvider.completeJSON<string[]>(prompt, {
+      const response = await openaiProvider.completeJSON<string[] | { skills: string[] }>(prompt, {
         temperature: 0.3,
         maxTokens: 500
       });
 
-      const expertise = Array.isArray(response) ? response : [];
+      // Handle both array format and object with skills property
+      let expertise: string[] = [];
+      if (Array.isArray(response)) {
+        expertise = response;
+      } else if (response && typeof response === 'object' && 'skills' in response && Array.isArray(response.skills)) {
+        expertise = response.skills;
+      }
+      
       console.log(`[Resume Extract] Extracted ${expertise.length} skills:`, expertise);
 
       // Save the extracted expertise
