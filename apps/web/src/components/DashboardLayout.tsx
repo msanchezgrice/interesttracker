@@ -43,7 +43,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-neutral-950 dark:bg-neutral-950 light:bg-neutral-50 text-neutral-100 dark:text-neutral-100 light:text-neutral-900 transition-colors">
-      <header className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200">
+      <header className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-neutral-800 dark:border-neutral-800 light:border-neutral-200">
         <Link href="/" className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-md bg-amber-500" />
           <span className="font-semibold tracking-tight">MakerPulse</span>
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           ))}
         </nav>
       </header>
-      <main className="max-w-6xl mx-auto px-6 py-12">
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {children}
       </main>
     </div>

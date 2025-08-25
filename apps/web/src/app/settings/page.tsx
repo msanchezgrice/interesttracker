@@ -37,6 +37,7 @@ export default function SettingsPage() {
     try {
       const response = await fetch('/api/preferences');
       const data = await response.json();
+      console.log('[Settings] Loaded preferences:', data);
       if (response.ok) {
         setWeeklyThemes(data.weeklyThemes || []);
         setGeneralInterests(data.generalInterests || []);
@@ -323,14 +324,16 @@ export default function SettingsPage() {
                           body: JSON.stringify({ resumeText })
                         });
                         const data = await response.json();
-                        if (response.ok) {
+                        console.log('[Settings] Resume extract response:', data);
+                        if (response.ok && data.expertise) {
+                          console.log('[Settings] Setting expertise:', data.expertise);
                           setExpertise(data.expertise || []);
                           await savePreferences({ 
                             weeklyThemes, 
                             generalInterests, 
                             extractedExpertise: data.expertise 
                           });
-                          alert('Skills extracted successfully!');
+                          alert(`Successfully extracted ${data.expertise.length} skills!`);
                         } else {
                           alert(data.error || 'Failed to extract skills');
                         }
