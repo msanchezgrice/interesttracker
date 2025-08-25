@@ -13,7 +13,11 @@ export async function GET() {
         score: true,
         scoreBreakdown: true,
         status: true,
-        createdAt: true
+        createdAt: true,
+        tags: true,
+        format: true,
+        estimatedReach: true,
+        proposedOutput: true
       }
     });
     
