@@ -186,7 +186,7 @@ export default function History() {
                   <th className="text-left py-3 px-4">Tags</th>
                   <th className="text-center py-3 px-4">Interest</th>
                   <th className="text-center py-3 px-4">Ignore</th>
-                  <th className="text-center py-3 px-4">Actions</th>
+                  <th className="text-center py-3 px-4 min-w-[120px]">Actions</th>
                 </tr>
               </thead>
               <tbody>

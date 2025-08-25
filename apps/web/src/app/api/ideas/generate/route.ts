@@ -6,6 +6,8 @@ import { analyzePageThemes } from "@/lib/llm/themes";
 
 export async function POST(request: Request) {
   try {
+    console.log('[Ideas Generate] Starting idea generation...');
+    
     // Get user - hardcoded for now
     const userId = "local-test";
     
@@ -15,6 +17,8 @@ export async function POST(request: Request) {
     const weeklyThemes = body.weeklyThemes || [];
     // const generalInterests = body.generalInterests || []; // TODO: Use for background context in future
     const userExpertise = body.userExpertise || [];
+    
+    console.log('[Ideas Generate] User preferences:', { weeklyThemes, userExpertise, ignoredDomains });
     
     // Get recent high-engagement events, excluding ignored domains
     const recentEvents = await prisma.event.findMany({
@@ -33,6 +37,8 @@ export async function POST(request: Request) {
       take: 50
     });
 
+    console.log(`[Ideas Generate] Found ${recentEvents.length} recent events`);
+    
     // Calculate scores if not already done
     const eventsWithScores = await Promise.all(
       recentEvents.map(async (event) => {
@@ -40,6 +46,8 @@ export async function POST(request: Request) {
         return { ...event, interestScore: score };
       })
     );
+    
+    console.log(`[Ideas Generate] Calculated scores for ${eventsWithScores.length} events`);
 
     // Group by topic and calculate aggregate scores
     const topicScores = new Map<string, { 
@@ -72,6 +80,8 @@ export async function POST(request: Request) {
     const topTopics = Array.from(topicScores.values())
       .sort((a, b) => b.totalScore - a.totalScore)
       .slice(0, 5);
+    
+    console.log(`[Ideas Generate] Top ${topTopics.length} topics:`, topTopics.map(t => ({ topic: t.topic, score: t.totalScore })));
 
     // Generate ideas for top topics
     const generatedIdeas = [];
@@ -117,8 +127,9 @@ export async function POST(request: Request) {
         };
         
         contentIdeas = await generateContentIdeas(ideaContext);
-      } catch {
-        console.log('LLM generation failed, using fallback');
+      } catch (error) {
+        console.error('LLM generation failed:', error);
+        console.log('Using fallback ideas');
       }
       
       // Pick the best idea or create a fallback
