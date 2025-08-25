@@ -378,21 +378,49 @@ export default function SettingsPage() {
                   
                   <span className="text-sm text-neutral-500">or</span>
                   
-                  <label className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-md text-sm font-medium transition-colors cursor-pointer">
-                    Upload PDF
+                  <label className={`px-4 py-2 ${processingResume ? 'bg-neutral-700 cursor-not-allowed' : 'bg-neutral-800 hover:bg-neutral-700 cursor-pointer'} rounded-md text-sm font-medium transition-colors`}>
+                    {processingResume ? 'Processing...' : 'Upload PDF/Image'}
                     <input
                       type="file"
-                      accept=".pdf"
+                      accept=".pdf,image/*"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         
                         setUploadedFileName(file.name);
+                        setProcessingResume(true);
                         
-                        // For now, PDF text extraction is not implemented
-                        // User will need to paste the text manually
-                        setResumeText("");
-                        alert("PDF upload is not yet implemented. Please copy and paste your resume text instead.");
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          const response = await fetch('/api/resume/upload', {
+                            method: 'POST',
+                            body: formData
+                          });
+                          const data = await response.json();
+                          
+                          console.log('[Settings] Resume upload response:', data);
+                          
+                          if (response.ok && data.text) {
+                            setResumeText(data.text);
+                            if (data.expertise && data.expertise.length > 0) {
+                              setExpertise(data.expertise);
+                              alert(data.message || `Successfully extracted ${data.expertise.length} skills!`);
+                            } else {
+                              alert('File uploaded. Click "Extract Skills" to process the text.');
+                            }
+                          } else {
+                            alert(data.error || 'Failed to process file');
+                            setUploadedFileName("");
+                          }
+                        } catch (error) {
+                          console.error('Failed to upload file:', error);
+                          alert('Failed to upload file');
+                          setUploadedFileName("");
+                        } finally {
+                          setProcessingResume(false);
+                        }
                       }}
                       className="hidden"
                     />
