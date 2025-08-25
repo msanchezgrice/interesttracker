@@ -63,16 +63,21 @@ Context about what captured their attention:
 - Content Type: ${context.themes.contentType}
 - Key Insights: ${context.themes.keyInsights.join('; ')}
 
-${context.recentTopics?.length ? `Recent interests: ${context.recentTopics.join(', ')}` : ''}
-${context.userExpertise?.length ? `Their expertise: ${context.userExpertise.join(', ')}` : ''}
-${context.weeklyInterests?.length ? `Things they're focused on this week: ${context.weeklyInterests.join(', ')}` : ''}
+User's Background & Current Focus:
+${context.recentTopics?.length ? `- Recent browsing interests: ${context.recentTopics.join(', ')}` : ''}
+${context.userExpertise?.length ? `- Professional expertise: ${context.userExpertise.join(', ')}` : ''}
+${context.weeklyInterests?.length ? `- THIS WEEK'S FOCUS (MUST incorporate): ${context.weeklyInterests.join(', ')}` : ''}
+
+CRITICAL REQUIREMENTS:
+Every content idea MUST directly connect to the user's weekly focus areas. The ideas should bridge what they just read with their current priorities.
 
 Generate 3-4 content ideas that:
-1. Build on what interested them about this content
-2. Add their unique perspective as a builder
-3. Are specific and actionable (not generic)
-4. Match different formats (tweet, thread, LinkedIn post, blog, video)
-5. Have strong hooks that would stop scrolling
+1. Build on the SPECIFIC content they just consumed (not generic themes)
+2. DIRECTLY RELATE to their weekly focus areas - show the connection explicitly
+3. Leverage their professional expertise to add unique insights
+4. Are specific and actionable (reference actual points from the content)
+5. Match different formats (tweet, thread, LinkedIn post, blog, video)
+6. Have strong hooks that would stop scrolling
 
 For each idea provide:
 - title: Clear, specific title

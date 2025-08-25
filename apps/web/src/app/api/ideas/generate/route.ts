@@ -14,6 +14,7 @@ export async function POST(request: Request) {
     const ignoredDomains = body.ignoredDomains || [];
     const weeklyThemes = body.weeklyThemes || [];
     const generalInterests = body.generalInterests || [];
+    const userExpertise = body.userExpertise || [];
     
     // Get recent high-engagement events, excluding ignored domains
     const recentEvents = await prisma.event.findMany({
@@ -112,7 +113,7 @@ export async function POST(request: Request) {
           },
           recentTopics: Array.from(topicScores.keys()).slice(0, 5),
           weeklyInterests: weeklyThemes,
-          userExpertise: generalInterests
+          userExpertise: userExpertise
         };
         
         contentIdeas = await generateContentIdeas(ideaContext);

@@ -9,6 +9,10 @@ export default function SettingsPage() {
   const [newWeeklyTheme, setNewWeeklyTheme] = useState("");
   const [generalInterests, setGeneralInterests] = useState<string[]>([]);
   const [newGeneralInterest, setNewGeneralInterest] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [expertise, setExpertise] = useState<string[]>([]);
+  const [manualExpertise, setManualExpertise] = useState("");
+  const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
   const [deviceKey, setDeviceKey] = useState("");
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<{
@@ -36,6 +40,8 @@ export default function SettingsPage() {
       if (response.ok) {
         setWeeklyThemes(data.weeklyThemes || []);
         setGeneralInterests(data.generalInterests || []);
+        setLinkedinUrl(data.linkedinUrl || '');
+        setExpertise(data.extractedExpertise || []);
       }
     } catch (error) {
       console.error('Failed to load preferences:', error);
@@ -132,7 +138,12 @@ export default function SettingsPage() {
     await savePreferences({ weeklyThemes, generalInterests: [] });
   };
 
-  const savePreferences = async (data: { weeklyThemes: string[]; generalInterests: string[] }) => {
+  const savePreferences = async (data: { 
+    weeklyThemes: string[]; 
+    generalInterests: string[]; 
+    linkedinUrl?: string;
+    extractedExpertise?: string[];
+  }) => {
     try {
       await fetch('/api/preferences', {
         method: 'POST',
@@ -263,6 +274,142 @@ export default function SettingsPage() {
                     {interest}
                     <button
                       onClick={() => removeGeneralInterest(interest)}
+                      className="ml-1 hover:text-red-400"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Professional Expertise */}
+        <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
+          <div className="mb-4">
+            <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 text-lg">
+              Professional Expertise
+            </h3>
+            <p className="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-sm mt-1">
+              Connect your LinkedIn or manually add your expertise to personalize content ideas.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {/* LinkedIn URL input */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+                LinkedIn Profile URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  onClick={async () => {
+                    setSyncingLinkedIn(true);
+                    try {
+                      const response = await fetch('/api/linkedin/sync', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ linkedinUrl })
+                      });
+                      const data = await response.json();
+                      if (response.ok) {
+                        setExpertise(data.expertise || []);
+                        await savePreferences({ 
+                          weeklyThemes, 
+                          generalInterests, 
+                          linkedinUrl,
+                          extractedExpertise: data.expertise 
+                        });
+                      }
+                    } catch (error) {
+                      console.error('Failed to sync LinkedIn:', error);
+                    } finally {
+                      setSyncingLinkedIn(false);
+                    }
+                  }}
+                  disabled={!linkedinUrl || syncingLinkedIn}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:cursor-not-allowed text-neutral-950 rounded-md text-sm font-medium transition-colors"
+                >
+                  {syncingLinkedIn ? 'Syncing...' : 'Sync LinkedIn'}
+                </button>
+              </div>
+            </div>
+
+            {/* Manual expertise input */}
+            <div>
+              <label className="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
+                Add Expertise Manually
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualExpertise}
+                  onChange={(e) => setManualExpertise(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && manualExpertise.trim()) {
+                      const updated = [...expertise, manualExpertise.trim()];
+                      setExpertise(updated);
+                      setManualExpertise("");
+                      savePreferences({ 
+                        weeklyThemes, 
+                        generalInterests, 
+                        linkedinUrl,
+                        extractedExpertise: updated 
+                      });
+                    }
+                  }}
+                  placeholder="e.g., React, Product Management, AI/ML"
+                  className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
+                />
+                <button
+                  onClick={async () => {
+                    if (manualExpertise.trim()) {
+                      const updated = [...expertise, manualExpertise.trim()];
+                      setExpertise(updated);
+                      setManualExpertise("");
+                      await savePreferences({ 
+                        weeklyThemes, 
+                        generalInterests, 
+                        linkedinUrl,
+                        extractedExpertise: updated 
+                      });
+                    }
+                  }}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-md text-sm font-medium transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Display expertise */}
+            {expertise.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {expertise.map((skill) => (
+                  <span
+                    key={skill}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-full text-sm"
+                  >
+                    {skill}
+                    <button
+                      onClick={async () => {
+                        const updated = expertise.filter(s => s !== skill);
+                        setExpertise(updated);
+                        await savePreferences({ 
+                          weeklyThemes, 
+                          generalInterests, 
+                          linkedinUrl,
+                          extractedExpertise: updated 
+                        });
+                      }}
                       className="ml-1 hover:text-red-400"
                     >
                       <X className="h-3 w-3" />

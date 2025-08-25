@@ -38,14 +38,20 @@ URL: ${event.url}
 Domain: ${event.domain}
 Description: ${metadata.description || 'No description'}
 Keywords: ${metadata.keywords?.join(', ') || 'None'}
-Content excerpt: ${metadata.mainContent?.slice(0, 1500) || 'No content available'}
+Content excerpt: ${metadata.mainContent?.slice(0, 2000) || 'No content available'}
 
 Extract the following:
 1. Main themes (2-4 high-level topics this content covers)
 2. Content tags (5-10 specific keywords that categorize this content)
 3. Content type (one of: tutorial, news, analysis, product, discussion, reference)
-4. Key insights (2-3 main takeaways a reader would get)
+4. Key insights (2-3 SPECIFIC takeaways from THIS content - not generic statements)
 5. Technical level (beginner, intermediate, advanced, or mixed)
+
+IMPORTANT: 
+- For key insights, be VERY SPECIFIC about what this particular content says
+- If it's a YouTube video, focus on what the video specifically covers
+- If it's an article, extract the actual claims or teachings
+- Don't be generic - reference specific points made in the content
 
 Focus on accuracy and relevance. Be specific rather than generic.
 `;

@@ -79,7 +79,8 @@ export default function Ideas() {
         body: JSON.stringify({ 
           ignoredDomains, 
           weeklyThemes: preferences.weeklyThemes || [],
-          generalInterests: preferences.generalInterests || []
+          generalInterests: preferences.generalInterests || [],
+          userExpertise: preferences.extractedExpertise || []
         })
       });
       const data = await response.json();
