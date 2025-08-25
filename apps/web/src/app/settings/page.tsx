@@ -1,8 +1,7 @@
 "use client";
 import DashboardLayout from "@/components/DashboardLayout";
-import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Plus, X, Sun, Moon, Settings, Copy, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
+import { Plus, X, Sun, Moon, Copy, CheckCircle, AlertCircle } from "lucide-react";
 
 export default function SettingsPage() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');

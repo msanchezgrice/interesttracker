@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import DashboardLayout from "@/components/DashboardLayout";
-import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, ExternalLink, Sparkles, Clock, ScrollText, Hash, Lightbulb } from "lucide-react";
 
