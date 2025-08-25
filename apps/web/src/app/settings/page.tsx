@@ -1,5 +1,6 @@
 "use client";
 import DashboardLayout from "@/components/DashboardLayout";
+import { AlertModal, ConfirmModal } from "@/components/Modal";
 import { useState, useEffect } from "react";
 import { Plus, X, Sun, Moon, Copy, CheckCircle, AlertCircle } from "lucide-react";
 
@@ -22,6 +23,31 @@ export default function SettingsPage() {
     message: string;
   }>({ database: false, api: false, message: "Click 'Check Status' to test" });
   const [checkingStatus, setCheckingStatus] = useState(false);
+  
+  // Modal states
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ isOpen: false, title: '', message: '', type: 'info' });
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+    type: 'danger' | 'warning' | 'info';
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {}, type: 'info' });
+
+  // Helper functions for modals
+  const showAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setAlertModal({ isOpen: true, title, message, type });
+  };
+
+  const showConfirm = (title: string, message: string, onConfirm: () => void, type: 'danger' | 'warning' | 'info' = 'info') => {
+    setConfirmModal({ isOpen: true, title, message, onConfirm, type });
+  };
 
   useEffect(() => {
     // Load theme from localStorage
@@ -75,10 +101,10 @@ export default function SettingsPage() {
         setDeviceKey(data.deviceKey);
         copyToClipboard(data.deviceKey);
       } else {
-        alert(`Error: ${data.error || 'Failed to generate key'}`);
+        showAlert('Error', data.error || 'Failed to generate key', 'error');
       }
     } catch {
-      alert('Error generating device key');
+      showAlert('Error', 'Error generating device key', 'error');
     }
   };
 
@@ -356,16 +382,16 @@ export default function SettingsPage() {
                             generalInterests, 
                             extractedExpertise: data.expertise 
                           });
-                          alert(`Successfully extracted ${data.expertise.length} skills!`);
+                          showAlert('Success', `Successfully extracted ${data.expertise.length} skills!`, 'success');
                           // Clear the form after successful extraction
                           setResumeText("");
                           setUploadedFileName("");
                         } else {
-                          alert(data.error || 'Failed to extract skills');
+                          showAlert('Error', data.error || 'Failed to extract skills', 'error');
                         }
                       } catch (error) {
                         console.error('Failed to process resume:', error);
-                        alert('Failed to process resume');
+                        showAlert('Error', 'Failed to process resume', 'error');
                       } finally {
                         setProcessingResume(false);
                       }
@@ -406,17 +432,23 @@ export default function SettingsPage() {
                             setResumeText(data.text);
                             if (data.expertise && data.expertise.length > 0) {
                               setExpertise(data.expertise);
-                              alert(data.message || `Successfully extracted ${data.expertise.length} skills!`);
+                              await loadPreferences(); // Reload to get updated data
+                              await savePreferences({ 
+                                weeklyThemes, 
+                                generalInterests, 
+                                extractedExpertise: data.expertise 
+                              });
+                              showAlert('Success', data.message || `Successfully extracted ${data.expertise.length} skills!`, 'success');
                             } else {
-                              alert('File uploaded. Click "Extract Skills" to process the text.');
+                              showAlert('Info', 'File uploaded but no skills were extracted. You can manually extract skills using the text area above.', 'info');
                             }
                           } else {
-                            alert(data.error || 'Failed to process file');
+                            showAlert('Error', data.error || 'Failed to process file', 'error');
                             setUploadedFileName("");
                           }
                         } catch (error) {
                           console.error('Failed to upload file:', error);
-                          alert('Failed to upload file');
+                          showAlert('Error', 'Failed to upload file', 'error');
                           setUploadedFileName("");
                         } finally {
                           setProcessingResume(false);
@@ -613,6 +645,24 @@ export default function SettingsPage() {
 
 
       </div>
+
+      {/* Modals */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        type={confirmModal.type}
+      />
     </DashboardLayout>
   );
 }

@@ -1,10 +1,24 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { AlertModal } from "@/components/Modal";
 
 export default function Debug() {
   const [eventCount, setEventCount] = useState<string>("");
   const [deviceCount, setDeviceCount] = useState<string>("");
+  
+  // Modal state
+  const [alertModal, setAlertModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({ isOpen: false, title: '', message: '', type: 'info' });
+
+  // Helper function for modal
+  const showAlert = (title: string, message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setAlertModal({ isOpen: true, title, message, type });
+  };
 
   const checkEvents = async () => {
     try {
@@ -46,9 +60,9 @@ export default function Debug() {
         })
       });
       const data = await response.json();
-      alert(`Ingest test: ${response.status} - ${JSON.stringify(data)}`);
+      showAlert('Ingest Test Result', `Status: ${response.status} - ${JSON.stringify(data)}`, response.ok ? 'success' : 'error');
     } catch (e) {
-      alert(`Ingest error: ${(e as Error).message}`);
+      showAlert('Ingest Error', (e as Error).message, 'error');
     }
   };
 
@@ -116,6 +130,15 @@ export default function Debug() {
           </Link>
         </div>
       </main>
+
+      {/* Modal */}
+      <AlertModal
+        isOpen={alertModal.isOpen}
+        onClose={() => setAlertModal({ ...alertModal, isOpen: false })}
+        title={alertModal.title}
+        message={alertModal.message}
+        type={alertModal.type}
+      />
     </div>
   );
 }
