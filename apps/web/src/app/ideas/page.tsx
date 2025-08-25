@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
 import { Copy, ExternalLink, TrendingUp, Hash } from "lucide-react";
 
 type Idea = {
@@ -35,7 +35,7 @@ export default function Ideas() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [generationStatus, setGenerationStatus] = useState("");
-  const router = useRouter();
+
 
   useEffect(() => {
     fetch('/api/ideas')

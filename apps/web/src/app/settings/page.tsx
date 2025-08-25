@@ -216,9 +216,9 @@ export default function SettingsPage() {
 
           {/* Focus Themes */}
           <section className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
-            <h2 className="text-lg font-medium mb-4">Things I'm Focused On This Week</h2>
+            <h2 className="text-lg font-medium mb-4">Things I&apos;m Focused On This Week</h2>
             <p className="text-sm text-neutral-400 mb-4">
-              Add topics you're currently focused on to help improve content recommendations and idea generation.
+              Add topics you&apos;re currently focused on to help improve content recommendations and idea generation.
             </p>
             
             <div className="space-y-4">
