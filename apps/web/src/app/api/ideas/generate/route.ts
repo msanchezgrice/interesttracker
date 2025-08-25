@@ -9,10 +9,11 @@ export async function POST(request: Request) {
     // Get user - hardcoded for now
     const userId = "local-test";
     
-    // Get ignored domains and weekly interests from request body
+    // Get ignored domains and user preferences from request body
     const body = await request.json().catch(() => ({}));
     const ignoredDomains = body.ignoredDomains || [];
-    const weeklyInterests = body.weeklyInterests || [];
+    const weeklyThemes = body.weeklyThemes || [];
+    const generalInterests = body.generalInterests || [];
     
     // Get recent high-engagement events, excluding ignored domains
     const recentEvents = await prisma.event.findMany({
@@ -110,7 +111,8 @@ export async function POST(request: Request) {
             keyInsights: [`High engagement with ${topicData.topic} content`]
           },
           recentTopics: Array.from(topicScores.keys()).slice(0, 5),
-          weeklyInterests: weeklyInterests
+          weeklyInterests: weeklyThemes,
+          userExpertise: generalInterests
         };
         
         contentIdeas = await generateContentIdeas(ideaContext);

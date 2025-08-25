@@ -20,13 +20,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   useEffect(() => {
-    // Apply theme to document
+    // Apply theme to document only for dashboard pages
     if (theme === 'light') {
       document.documentElement.classList.add('light');
     } else {
       document.documentElement.classList.remove('light');
     }
     localStorage.setItem('theme', theme);
+    
+    // Cleanup on unmount to ensure landing page doesn't have light mode
+    return () => {
+      document.documentElement.classList.remove('light');
+    };
   }, [theme]);
 
   const navLinks = [

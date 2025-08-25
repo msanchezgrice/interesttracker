@@ -1,12 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- Background circle -->
-  <circle cx="64" cy="64" r="60" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
-  
-  <!-- Magnifying glass -->
-  <g transform="translate(32, 32)">
-    <!-- Lens -->
-    <circle cx="24" cy="24" r="18" fill="none" stroke="white" stroke-width="6"/>
-    <!-- Handle -->
-    <line x1="37" y1="37" x2="56" y2="56" stroke="white" stroke-width="6" stroke-linecap="round"/>
-  </g>
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="128" height="128" rx="24" fill="#F59E0B"/>
+  <path d="M40 48H88V64H40V48Z" fill="#0A0A0A"/>
+  <path d="M40 72H72V80H40V72Z" fill="#0A0A0A"/>
+  <path d="M24 40L64 20L104 40V88L64 108L24 88V40Z" stroke="#0A0A0A" stroke-width="4" stroke-linejoin="round" fill="none"/>
+  <circle cx="64" cy="64" r="8" fill="#0A0A0A"/>
 </svg>

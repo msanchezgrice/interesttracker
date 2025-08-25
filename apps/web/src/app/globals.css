@@ -79,3 +79,8 @@ body {
 .light .hover\:bg-amber-400:hover {
   background-color: rgb(251 191 36);
 }
+
+/* Additional light mode fixes for content visibility */
+.light pre {
+  color: rgb(23 23 23);
+}

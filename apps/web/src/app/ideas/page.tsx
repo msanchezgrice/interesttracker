@@ -64,16 +64,23 @@ export default function Ideas() {
     setGenerationStatus("");
     
     try {
-      // Get ignored domains and weekly interests from localStorage
+      // Get ignored domains from localStorage
       const ignoredDomains = JSON.parse(localStorage.getItem('ignoredDomains') || '[]');
-      const weeklyInterests = JSON.parse(localStorage.getItem('weeklyInterests') || '[]');
+      
+      // Get user preferences from API
+      const prefResponse = await fetch('/api/preferences');
+      const preferences = await prefResponse.json();
       
       const response = await fetch('/api/ideas/generate', { 
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ ignoredDomains, weeklyInterests })
+        body: JSON.stringify({ 
+          ignoredDomains, 
+          weeklyThemes: preferences.weeklyThemes || [],
+          generalInterests: preferences.generalInterests || []
+        })
       });
       const data = await response.json();
       
@@ -247,7 +254,7 @@ export default function Ideas() {
                         )}
                       </button>
                     </div>
-                  <pre className="whitespace-pre-wrap text-sm text-neutral-200 dark:text-neutral-200 light:text-neutral-800 font-normal">
+                  <pre className="whitespace-pre-wrap text-sm text-neutral-200 dark:text-neutral-200 light:text-neutral-900 font-normal">
                       {idea.proposedOutput.content}
                     </pre>
                     {idea.proposedOutput.metadata?.hashtags && (

@@ -5,12 +5,12 @@ import { Plus, X, Sun, Moon, Copy, CheckCircle, AlertCircle } from "lucide-react
 
 export default function SettingsPage() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-  const [interests, setInterests] = useState<string[]>([]);
-  const [newInterest, setNewInterest] = useState("");
+  const [weeklyThemes, setWeeklyThemes] = useState<string[]>([]);
+  const [newWeeklyTheme, setNewWeeklyTheme] = useState("");
+  const [generalInterests, setGeneralInterests] = useState<string[]>([]);
+  const [newGeneralInterest, setNewGeneralInterest] = useState("");
   const [deviceKey, setDeviceKey] = useState("");
   const [copied, setCopied] = useState(false);
-  const [focusThemes, setFocusThemes] = useState<string[]>([]);
-  const [newTheme, setNewTheme] = useState("");
   const [status, setStatus] = useState<{
     database: boolean;
     api: boolean;
@@ -24,13 +24,7 @@ export default function SettingsPage() {
       setTheme(savedTheme);
     }
 
-    // Load interests from localStorage (our new feature)
-    const savedInterests = localStorage.getItem('weeklyInterests');
-    if (savedInterests) {
-      setInterests(JSON.parse(savedInterests));
-    }
-
-    // Load other settings from the remote version
+    // Load from API and localStorage
     checkStatus();
     loadPreferences();
   }, []);
@@ -40,7 +34,8 @@ export default function SettingsPage() {
       const response = await fetch('/api/preferences');
       const data = await response.json();
       if (response.ok) {
-        setFocusThemes(data.focusThemes || []);
+        setWeeklyThemes(data.weeklyThemes || []);
+        setGeneralInterests(data.generalInterests || []);
       }
     } catch (error) {
       console.error('Failed to load preferences:', error);
@@ -92,66 +87,66 @@ export default function SettingsPage() {
     setTheme(newTheme);
     localStorage.setItem('theme', newTheme);
     
-    // Apply theme to document
-    if (newTheme === 'light') {
-      document.documentElement.classList.add('light');
-    } else {
-      document.documentElement.classList.remove('light');
+    // Theme application is handled by DashboardLayout
+    // Force page reload to apply theme changes
+    window.location.reload();
+  };
+
+  const addWeeklyTheme = async () => {
+    if (newWeeklyTheme.trim() && !weeklyThemes.includes(newWeeklyTheme.trim())) {
+      const updated = [...weeklyThemes, newWeeklyTheme.trim()];
+      setWeeklyThemes(updated);
+      setNewWeeklyTheme("");
+      await savePreferences({ weeklyThemes: updated, generalInterests });
     }
   };
 
-  const addInterest = () => {
-    if (newInterest.trim() && !interests.includes(newInterest.trim())) {
-      const updated = [...interests, newInterest.trim()];
-      setInterests(updated);
-      localStorage.setItem('weeklyInterests', JSON.stringify(updated));
-      setNewInterest("");
+  const removeWeeklyTheme = async (theme: string) => {
+    const updated = weeklyThemes.filter(t => t !== theme);
+    setWeeklyThemes(updated);
+    await savePreferences({ weeklyThemes: updated, generalInterests });
+  };
+
+  const clearWeeklyThemes = async () => {
+    setWeeklyThemes([]);
+    await savePreferences({ weeklyThemes: [], generalInterests });
+  };
+
+  const addGeneralInterest = async () => {
+    if (newGeneralInterest.trim() && !generalInterests.includes(newGeneralInterest.trim())) {
+      const updated = [...generalInterests, newGeneralInterest.trim()];
+      setGeneralInterests(updated);
+      setNewGeneralInterest("");
+      await savePreferences({ weeklyThemes, generalInterests: updated });
     }
   };
 
-  const removeInterest = (interest: string) => {
-    const updated = interests.filter(i => i !== interest);
-    setInterests(updated);
-    localStorage.setItem('weeklyInterests', JSON.stringify(updated));
+  const removeGeneralInterest = async (interest: string) => {
+    const updated = generalInterests.filter(i => i !== interest);
+    setGeneralInterests(updated);
+    await savePreferences({ weeklyThemes, generalInterests: updated });
   };
 
-  const clearAllInterests = () => {
-    setInterests([]);
-    localStorage.removeItem('weeklyInterests');
+  const clearGeneralInterests = async () => {
+    setGeneralInterests([]);
+    await savePreferences({ weeklyThemes, generalInterests: [] });
   };
 
-  const addFocusTheme = async () => {
-    if (newTheme.trim() && !focusThemes.includes(newTheme.trim())) {
-      const updated = [...focusThemes, newTheme.trim()];
-      setFocusThemes(updated);
-      setNewTheme("");
-      
-      try {
-        await fetch('/api/preferences', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ focusThemes: updated })
-        });
-      } catch (error) {
-        console.error('Failed to save preferences:', error);
-      }
-    }
-  };
-
-  const removeFocusTheme = async (theme: string) => {
-    const updated = focusThemes.filter(t => t !== theme);
-    setFocusThemes(updated);
-    
+  const savePreferences = async (data: { weeklyThemes: string[]; generalInterests: string[] }) => {
     try {
       await fetch('/api/preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ focusThemes: updated })
+        body: JSON.stringify(data)
       });
+      // Also save to localStorage for backwards compatibility
+      localStorage.setItem('weeklyInterests', JSON.stringify(data.weeklyThemes));
     } catch (error) {
       console.error('Failed to save preferences:', error);
     }
   };
+
+
 
   return (
     <DashboardLayout>
@@ -163,19 +158,19 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Things I am interested in this week - moved to top */}
+        {/* Themes for this week - at top */}
         <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 text-lg">
-                Things I am interested in this week
+                Themes for this week
               </h3>
               <p className="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-sm mt-1">
-                Add topics you want to focus on. These will influence your content recommendations.
+                Add specific themes you want to focus on this week. These strongly influence your content ideas.
               </p>
             </div>
             <button
-              onClick={clearAllInterests}
+              onClick={clearWeeklyThemes}
               className="px-3 py-1.5 text-sm rounded-md border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
             >
               Clear All
@@ -186,30 +181,88 @@ export default function SettingsPage() {
             <div className="flex gap-2">
               <input
                 type="text"
-                value={newInterest}
-                onChange={(e) => setNewInterest(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addInterest()}
-                placeholder="Add an interest (e.g., AI agents, Web3, productivity)"
+                value={newWeeklyTheme}
+                onChange={(e) => setNewWeeklyTheme(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addWeeklyTheme()}
+                placeholder="Add a weekly theme (e.g., AI agents, Web3, productivity)"
                 className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
               />
               <button
-                onClick={addInterest}
+                onClick={addWeeklyTheme}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-md text-sm font-medium transition-colors"
               >
                 <Plus className="h-4 w-4" />
               </button>
             </div>
 
-            {interests.length > 0 && (
+            {weeklyThemes.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {interests.map((interest) => (
+                {weeklyThemes.map((theme) => (
+                  <span
+                    key={theme}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-full text-sm"
+                  >
+                    {theme}
+                    <button
+                      onClick={() => removeWeeklyTheme(theme)}
+                      className="ml-1 hover:text-red-400"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* General interests - second from top */}
+        <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 text-lg">
+                General interests
+              </h3>
+              <p className="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-sm mt-1">
+                Add your ongoing interests. These provide background context for content recommendations.
+              </p>
+            </div>
+            <button
+              onClick={clearGeneralInterests}
+              className="px-3 py-1.5 text-sm rounded-md border border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-colors"
+            >
+              Clear All
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newGeneralInterest}
+                onChange={(e) => setNewGeneralInterest(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addGeneralInterest()}
+                placeholder="Add a general interest (e.g., startups, design, marketing)"
+                className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
+              />
+              <button
+                onClick={addGeneralInterest}
+                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-md text-sm font-medium transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {generalInterests.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {generalInterests.map((interest) => (
                   <span
                     key={interest}
                     className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-full text-sm"
                   >
                     {interest}
                     <button
-                      onClick={() => removeInterest(interest)}
+                      onClick={() => removeGeneralInterest(interest)}
                       className="ml-1 hover:text-red-400"
                     >
                       <X className="h-3 w-3" />
@@ -313,49 +366,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Focus Themes (from remote) */}
-        <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
-          <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 mb-4">
-            Focus Themes
-          </h3>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={newTheme}
-                onChange={(e) => setNewTheme(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addFocusTheme()}
-                placeholder="Add a focus theme (e.g., AI, productivity, design)"
-                className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
-              />
-              <button
-                onClick={addFocusTheme}
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-md text-sm font-medium transition-colors"
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-            </div>
 
-            {focusThemes.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {focusThemes.map((theme) => (
-                  <span
-                    key={theme}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-full text-sm"
-                  >
-                    {theme}
-                    <button
-                      onClick={() => removeFocusTheme(theme)}
-                      className="ml-1 hover:text-red-400"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
       </div>
     </DashboardLayout>
   );

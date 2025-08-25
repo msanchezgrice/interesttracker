@@ -150,13 +150,14 @@ model ExcludedDomain {
 }
 
 model UserPreferences {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  focusThemes  String[] // Things the user is focused on this week
-  updatedAt    DateTime @updatedAt
-  createdAt    DateTime @default(now())
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  weeklyThemes     String[] // Themes the user is focused on this week
+  generalInterests String[] // Ongoing general interests
+  updatedAt        DateTime @updatedAt
+  createdAt        DateTime @default(now())
   
-  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  User             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 

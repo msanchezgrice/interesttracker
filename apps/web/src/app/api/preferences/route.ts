@@ -7,11 +7,12 @@ export async function GET() {
     
     const preferences = await prisma.userPreferences.findUnique({
       where: { userId },
-      select: { focusThemes: true, updatedAt: true }
+      select: { weeklyThemes: true, generalInterests: true, updatedAt: true }
     });
     
     return NextResponse.json({ 
-      focusThemes: preferences?.focusThemes || [],
+      weeklyThemes: preferences?.weeklyThemes || [],
+      generalInterests: preferences?.generalInterests || [],
       updatedAt: preferences?.updatedAt || null
     });
   } catch (error) {
@@ -23,20 +24,21 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const userId = "local-test"; // TODO: Get from auth
-    const { focusThemes } = await req.json();
+    const { weeklyThemes, generalInterests } = await req.json();
     
-    if (!Array.isArray(focusThemes)) {
-      return NextResponse.json({ error: "focusThemes must be an array" }, { status: 400 });
+    if (!Array.isArray(weeklyThemes) || !Array.isArray(generalInterests)) {
+      return NextResponse.json({ error: "weeklyThemes and generalInterests must be arrays" }, { status: 400 });
     }
     
     const preferences = await prisma.userPreferences.upsert({
       where: { userId },
-      update: { focusThemes },
-      create: { userId, focusThemes }
+      update: { weeklyThemes, generalInterests },
+      create: { userId, weeklyThemes, generalInterests }
     });
     
     return NextResponse.json({ 
-      focusThemes: preferences.focusThemes,
+      weeklyThemes: preferences.weeklyThemes,
+      generalInterests: preferences.generalInterests,
       updatedAt: preferences.updatedAt
     });
   } catch (error) {
