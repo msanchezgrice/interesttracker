@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { openaiProvider } from '@/lib/llm';
 import { prisma } from '@/lib/prisma';
 
+// Dynamic import to avoid issues with pdf-parse in edge runtime
+const pdfParse = async (buffer: Buffer) => {
+  const pdf = await import('pdf-parse');
+  return pdf.default(buffer);
+};
+
 export async function POST(req: NextRequest) {
   try {
     // TODO: Replace with proper auth when Clerk is configured
@@ -25,25 +31,32 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
-        // Convert file to base64 for OpenAI
+      let extractedText = '';
+      let expertise: string[] = [];
+
+      if (file.type === 'application/pdf') {
+        // Handle PDF files by extracting text
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const base64 = buffer.toString('base64');
         
-        console.log('[Resume Upload] Sending file to OpenAI for analysis');
+        console.log('[Resume Upload] Extracting text from PDF');
         
-        // Create the prompt for OpenAI
-        const prompt = `You are analyzing a resume file. Extract the following information:
+        try {
+          const pdfData = await pdfParse(buffer);
+          extractedText = pdfData.text;
+          console.log('[Resume Upload] Extracted text length:', extractedText.length);
+          
+          if (!extractedText || extractedText.length < 50) {
+            throw new Error('Could not extract meaningful text from PDF');
+          }
+          
+          // Now use the extracted text to get skills
+          const prompt = `Extract professional expertise from this resume text:
 
-1. First, extract ALL the text content from the file
-2. Then, identify 10-15 specific skills, technologies, and areas of expertise
+${extractedText}
 
-Return a JSON object in this EXACT format:
-{
-  "text": "full text content of the resume...",
-  "expertise": ["skill1", "skill2", "skill3", ...]
-}
+Return ONLY a JSON array of 10-15 specific skills, technologies, and areas of expertise in this exact format: ["skill1", "skill2", "skill3"]
+Do NOT wrap it in an object like {skills: [...]}, just return the array directly.
 
 Focus on:
 - Technical skills (programming languages, frameworks, tools)
@@ -51,7 +64,44 @@ Focus on:
 - Professional competencies
 - Notable achievements or specializations`;
 
-        // Use OpenAI's vision/file analysis capability
+          const response = await openaiProvider.completeJSON<string[] | { skills: string[] }>(prompt, {
+            temperature: 0.3,
+            maxTokens: 500
+          });
+
+          // Handle both array format and object with skills property
+          if (Array.isArray(response)) {
+            expertise = response;
+          } else if (response && typeof response === 'object' && 'skills' in response && Array.isArray(response.skills)) {
+            expertise = response.skills;
+          }
+          
+          console.log(`[Resume Upload] Extracted ${expertise.length} skills:`, expertise);
+          
+        } catch (pdfError) {
+          console.error('[Resume Upload] PDF parsing error:', pdfError);
+          throw new Error('Failed to parse PDF. The file may be corrupted or password-protected.');
+        }
+        
+      } else if (file.type.startsWith('image/')) {
+        // Handle image files using OpenAI vision
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const base64 = buffer.toString('base64');
+        
+        console.log('[Resume Upload] Sending image to OpenAI for analysis');
+        
+        const prompt = `You are analyzing a resume image. Extract the following information:
+
+1. First, extract ALL the text content from the image
+2. Then, identify 10-15 specific skills, technologies, and areas of expertise
+
+Return a JSON object in this EXACT format:
+{
+  "text": "full text content of the resume...",
+  "expertise": ["skill1", "skill2", "skill3", ...]
+}`;
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -84,53 +134,19 @@ Focus on:
 
         if (!response.ok) {
           const error = await response.text();
-          console.error('[Resume Upload] OpenAI API error:', error);
-          throw new Error('Failed to analyze file');
+          console.error('[Resume Upload] OpenAI Vision API error:', error);
+          throw new Error('Failed to analyze image');
         }
 
         const data = await response.json();
         const content = data.choices[0].message.content;
         
-        console.log('[Resume Upload] OpenAI response received');
+        console.log('[Resume Upload] OpenAI vision response received');
         
         // Parse the JSON response
-        try {
-          const parsed = JSON.parse(content);
-          console.log('[Resume Upload] Extracted text length:', parsed.text?.length || 0);
-          console.log('[Resume Upload] Extracted skills:', parsed.expertise?.length || 0);
-          
-          // Save the expertise to database
-          if (parsed.expertise && parsed.expertise.length > 0) {
-            await prisma.userPreferences.upsert({
-              where: { userId },
-              update: {
-                extractedExpertise: parsed.expertise,
-                lastExpertiseSync: new Date()
-              },
-              create: {
-                userId,
-                extractedExpertise: parsed.expertise,
-                lastExpertiseSync: new Date(),
-                weeklyThemes: [],
-                generalInterests: []
-              }
-            });
-          }
-          
-          return NextResponse.json({
-            text: parsed.text || '',
-            expertise: parsed.expertise || [],
-            message: parsed.expertise?.length ? `Successfully extracted ${parsed.expertise.length} skills from your resume` : 'No skills found'
-          });
-        } catch (parseError) {
-          console.error('[Resume Upload] Failed to parse OpenAI response:', parseError);
-          // Try to extract text from the response even if it's not proper JSON
-          return NextResponse.json({
-            text: content,
-            expertise: [],
-            message: 'Could not parse skills, but extracted text'
-          });
-        }
+        const parsed = JSON.parse(content);
+        extractedText = parsed.text || '';
+        expertise = parsed.expertise || [];
         
       } else {
         return NextResponse.json({
@@ -139,10 +155,34 @@ Focus on:
         });
       }
 
+      // Save the expertise to database if we have any
+      if (expertise && expertise.length > 0) {
+        await prisma.userPreferences.upsert({
+          where: { userId },
+          update: {
+            extractedExpertise: expertise,
+            lastExpertiseSync: new Date()
+          },
+          create: {
+            userId,
+            extractedExpertise: expertise,
+            lastExpertiseSync: new Date(),
+            weeklyThemes: [],
+            generalInterests: []
+          }
+        });
+      }
+      
+      return NextResponse.json({
+        text: extractedText,
+        expertise: expertise || [],
+        message: expertise?.length ? `Successfully extracted ${expertise.length} skills from your resume` : 'Extracted text but no specific skills found'
+      });
+
     } catch (error) {
       console.error('[Resume Upload] Error processing file:', error);
       return NextResponse.json(
-        { error: 'Failed to process file. Please try pasting your resume text instead.' },
+        { error: error instanceof Error ? error.message : 'Failed to process file' },
         { status: 500 }
       );
     }
@@ -155,3 +195,6 @@ Focus on:
     );
   }
 }
+
+// Configure the API route for Node.js runtime (required for pdf-parse)
+export const runtime = 'nodejs';
