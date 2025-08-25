@@ -33,7 +33,7 @@ class OpenAIProvider implements LLMProvider {
         { role: 'user', content: prompt }
       ],
       temperature: options?.temperature || 0.7,
-      max_tokens: options?.maxTokens || 1000,
+      max_tokens: options?.maxTokens || 5000,
     };
     
     console.log('[OpenAI] Request body:', JSON.stringify(requestBody, null, 2));
@@ -72,7 +72,7 @@ class OpenAIProvider implements LLMProvider {
         { role: 'user', content: prompt }
       ],
       temperature: options?.temperature || 0.3,
-      max_tokens: options?.maxTokens || 2000,
+      max_tokens: options?.maxTokens || 5000,
       response_format: { type: "json_object" }
     };
     

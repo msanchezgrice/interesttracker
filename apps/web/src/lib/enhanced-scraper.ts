@@ -54,9 +54,7 @@ async function scrapeWithGoogleAPI(url: string): Promise<EnhancedPageContent | n
         tools: [{
           url_context: {}
         }],
-        generationConfig: {
-          response_mime_type: "application/json"
-        }
+        // Note: Cannot use response_mime_type with tools
       })
     });
 
@@ -70,20 +68,37 @@ async function scrapeWithGoogleAPI(url: string): Promise<EnhancedPageContent | n
     
     // Extract the content from the response
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      const extractedData = JSON.parse(data.candidates[0].content.parts[0].text);
+      const textContent = data.candidates[0].content.parts[0].text;
       
-      return {
-        title: extractedData.title || '',
-        description: extractedData.description || '',
-        fullContent: extractedData.mainContent || '',
-        mainPoints: extractedData.keyPoints || [],
-        quotes: extractedData.quotes || [],
-        metadata: {
-          author: extractedData.author,
-          publishDate: extractedData.publishDate,
-          videoTranscript: extractedData.videoTranscript
+      try {
+        // Try to parse as JSON directly
+        let extractedData;
+        
+        // Check if response has markdown code blocks
+        const jsonMatch = textContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+          extractedData = JSON.parse(jsonMatch[1]);
+        } else {
+          extractedData = JSON.parse(textContent);
         }
-      };
+        
+        return {
+          title: extractedData.title || '',
+          description: extractedData.description || '',
+          fullContent: extractedData.mainContent || '',
+          mainPoints: extractedData.keyPoints || [],
+          quotes: extractedData.quotes || [],
+          metadata: {
+            author: extractedData.author,
+            publishDate: extractedData.publishDate,
+            videoTranscript: extractedData.videoTranscript
+          }
+        };
+      } catch (error) {
+        console.error('[Google URL Context] Failed to parse response as JSON:', error);
+        console.error('[Google URL Context] Raw response:', textContent);
+        return null;
+      }
     }
     
     return null;

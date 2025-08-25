@@ -84,3 +84,84 @@ body {
 .light pre {
   color: rgb(23 23 23);
 }
+
+/* More comprehensive light mode fixes */
+.light .bg-neutral-800 {
+  background-color: rgb(245 245 245);
+}
+
+.light .text-neutral-200 {
+  color: rgb(64 64 64);
+}
+
+.light .text-neutral-300 {
+  color: rgb(82 82 82);
+}
+
+.light .text-neutral-500 {
+  color: rgb(115 115 115);
+}
+
+.light .border-neutral-700 {
+  border-color: rgb(229 229 229);
+}
+
+.light .border-neutral-600 {
+  border-color: rgb(212 212 212);
+}
+
+.light .hover\:border-neutral-600:hover {
+  border-color: rgb(163 163 163);
+}
+
+.light .hover\:border-neutral-500:hover {
+  border-color: rgb(163 163 163);
+}
+
+.light .hover\:bg-neutral-800:hover {
+  background-color: rgb(229 229 229);
+}
+
+.light .hover\:bg-neutral-700:hover {
+  background-color: rgb(229 229 229);
+}
+
+/* Form inputs in light mode */
+.light input,
+.light textarea,
+.light select {
+  background-color: rgb(255 255 255);
+  border-color: rgb(229 229 229);
+  color: rgb(23 23 23);
+}
+
+.light input:focus,
+.light textarea:focus,
+.light select:focus {
+  border-color: rgb(245 158 11);
+}
+
+/* Code blocks and pre elements */
+.light code {
+  background-color: rgb(243 244 246);
+  color: rgb(31 41 55);
+}
+
+/* Placeholder text */
+.light input::placeholder,
+.light textarea::placeholder {
+  color: rgb(156 163 175);
+}
+
+/* Scrollbar in light mode */
+.light ::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}

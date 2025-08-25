@@ -64,20 +64,38 @@ export class GeminiProvider {
 
   async completeJSON<T>(prompt: string, options?: GeminiCompletionOptions): Promise<T> {
     console.log('[Gemini JSON] Starting JSON completion request');
+    console.log('[Gemini JSON] Has tools:', !!options?.tools);
     
-    const requestBody = {
+    // Cannot use response_mime_type with tools
+    const useJsonMimeType = !options?.tools;
+    
+    const requestBody: {
+      contents: Array<{ parts: Array<{ text: string }> }>;
+      generationConfig: {
+        temperature: number;
+        maxOutputTokens: number;
+        response_mime_type?: string;
+      };
+      tools?: Array<{ url_context?: Record<string, never> }>;
+    } = {
       contents: [{
-        parts: [{ text: `${prompt}\n\nRespond with valid JSON only.` }]
+        parts: [{ text: `${prompt}\n\nRespond with valid JSON only. No markdown, no explanations, just the JSON object.` }]
       }],
       generationConfig: {
         temperature: options?.temperature || 0.3,
         maxOutputTokens: options?.maxTokens || 2048,
-        response_mime_type: "application/json"
-      },
-      tools: options?.tools || undefined
+      }
     };
 
-
+    // Only add response_mime_type if not using tools
+    if (useJsonMimeType) {
+      requestBody.generationConfig.response_mime_type = "application/json";
+    }
+    
+    // Add tools if provided
+    if (options?.tools) {
+      requestBody.tools = options.tools;
+    }
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${options?.model || this.defaultModel}:generateContent`, {
       method: 'POST',
@@ -98,11 +116,22 @@ export class GeminiProvider {
     console.log('[Gemini JSON] Response received');
     
     if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-      const jsonStr = data.candidates[0].content.parts[0].text;
+      const textContent = data.candidates[0].content.parts[0].text;
+      
+      // Try to extract JSON from the response
+      let jsonStr = textContent;
+      
+      // Remove markdown code blocks if present
+      const jsonMatch = textContent.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        jsonStr = jsonMatch[1];
+      }
+      
       try {
-        return JSON.parse(jsonStr);
+        return JSON.parse(jsonStr.trim());
       } catch (error) {
         console.error('[Gemini JSON] Failed to parse JSON:', jsonStr);
+        console.error('[Gemini JSON] Original response:', textContent);
         throw new Error('Failed to parse JSON response from Gemini');
       }
     }
