@@ -1,4 +1,5 @@
 import { getLLM } from './index';
+import { geminiProvider } from './gemini-provider';
 import type { PageMetadata } from '../scraper';
 
 export interface ThemeAnalysis {
@@ -15,16 +16,18 @@ export async function analyzePageThemes(
 ): Promise<ThemeAnalysis> {
   console.log('[Theme Analysis] Starting analysis');
   console.log('[Theme Analysis] Event:', event?.url || 'No URL');
-  console.log('[Theme Analysis] Metadata:', {
-    hasDescription: !!metadata.description,
-    hasKeywords: !!metadata.keywords,
-    hasContent: !!metadata.mainContent,
-    contentLength: metadata.mainContent?.length || 0
-  });
+  console.log('[Theme Analysis] Using Gemini with URL Context');
   
+  // Try Gemini with URL Context first
+  try {
+    return await analyzeWithGeminiUrlContext(event);
+  } catch (error) {
+    console.error('[Theme Analysis] Gemini URL Context failed, falling back to standard analysis:', error);
+  }
+  
+  // Fallback to standard LLM analysis
   const llm = getLLM();
   
-  // Fallback to basic analysis if no LLM available
   if (!llm) {
     console.log('[Theme Analysis] No LLM available, using fallback analysis');
     return basicThemeAnalysis(metadata, event);
@@ -164,5 +167,47 @@ function basicThemeAnalysis(
     contentType,
     keyInsights: [`Content about ${themes[0] || 'technology'}`],
     technicalLevel: 'mixed'
+  };
+}
+
+// New function to analyze using Gemini with URL Context
+async function analyzeWithGeminiUrlContext(
+  event: { title?: string | null; url: string; domain: string }
+): Promise<ThemeAnalysis> {
+  console.log('[Theme Analysis] Using Gemini URL Context for:', event.url);
+  
+  const prompt = `
+Analyze the content at this URL and extract structured insights:
+${event.url}
+
+Extract the following:
+1. themes: 2-4 high-level topics this content covers
+2. contentTags: 5-10 specific keywords that categorize this content
+3. contentType: one of: tutorial, news, analysis, product, discussion, reference
+4. keyInsights: 2-3 SPECIFIC takeaways from THIS content (not generic statements)
+5. technicalLevel: beginner, intermediate, advanced, or mixed
+
+IMPORTANT: 
+- For keyInsights, be VERY SPECIFIC about what this particular content says
+- If it's a YouTube video, focus on what the video specifically covers
+- If it's an article, extract the actual claims or teachings
+- Reference specific points made in the content
+
+Return as JSON with these exact field names.`;
+
+  const response = await geminiProvider.completeJSON<ThemeAnalysis>(prompt, {
+    tools: [{ url_context: {} }],
+    temperature: 0.3
+  });
+  
+  console.log('[Theme Analysis] Gemini response:', response);
+  
+  // Validate and clean the response
+  return {
+    themes: (response.themes || []).slice(0, 4),
+    contentTags: (response.contentTags || []).slice(0, 10),
+    contentType: response.contentType || 'reference',
+    keyInsights: (response.keyInsights || []).slice(0, 3),
+    technicalLevel: response.technicalLevel || 'mixed'
   };
 }

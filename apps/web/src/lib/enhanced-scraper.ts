@@ -14,50 +14,90 @@ export interface EnhancedPageContent {
   };
 }
 
-// Google's URL Context API wrapper (when available)
+// Google's URL Context API implementation
 async function scrapeWithGoogleAPI(url: string): Promise<EnhancedPageContent | null> {
   try {
-    // TODO: Implement when Google releases the API
-    // This would use something like:
-    // const response = await fetch('https://api.google.com/urlcontext/v1/extract', {
-    //   method: 'POST',
-    //   headers: { 'Authorization': `Bearer ${API_KEY}` },
-    //   body: JSON.stringify({ url })
-    // });
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error('GEMINI_API_KEY not found in environment variables');
+      return null;
+    }
+
+    console.log('[Google URL Context] Fetching content for:', url);
     
-    console.log('Google URL Context API not yet available');
+    const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent', {
+      method: 'POST',
+      headers: {
+        'x-goog-api-key': apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: `Analyze this URL and extract the following information in a structured format:
+            
+            URL: ${url}
+            
+            Please extract:
+            1. title: The main title of the page/video/document
+            2. description: A brief summary (100-200 chars)
+            3. mainContent: The main content or key information (up to 2000 chars)
+            4. keyPoints: List of 3-5 main points or takeaways
+            5. quotes: Any notable quotes or statements (if available)
+            6. author: Author name (if available)
+            7. publishDate: Publication date (if available)
+            8. For YouTube videos: Include what the video is specifically about
+            
+            Format the response as JSON.`
+          }]
+        }],
+        tools: [{
+          url_context: {}
+        }],
+        generationConfig: {
+          response_mime_type: "application/json"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`API error: ${response.status} - ${error}`);
+    }
+    
+    const data = await response.json();
+    console.log('[Google URL Context] Response received');
+    
+    // Extract the content from the response
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      const extractedData = JSON.parse(data.candidates[0].content.parts[0].text);
+      
+      return {
+        title: extractedData.title || '',
+        description: extractedData.description || '',
+        fullContent: extractedData.mainContent || '',
+        mainPoints: extractedData.keyPoints || [],
+        quotes: extractedData.quotes || [],
+        metadata: {
+          author: extractedData.author,
+          publishDate: extractedData.publishDate,
+          videoTranscript: extractedData.videoTranscript
+        }
+      };
+    }
+    
     return null;
   } catch (error) {
-    console.error('Google API error:', error);
+    console.error('Google URL Context API error:', error);
     return null;
   }
 }
 
-// YouTube transcript extraction
+// YouTube content is now handled by Google URL Context API
 async function extractYouTubeContent(url: string): Promise<Partial<EnhancedPageContent> | null> {
-  try {
-    // Extract video ID
-    const videoIdMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?]+)/);
-    if (!videoIdMatch) return null;
-    
-    const videoId = videoIdMatch[1];
-    
-    // TODO: Implement YouTube API integration
-    // Would need YouTube Data API key
-    // const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?id=${videoId}&part=snippet,contentDetails&key=${YOUTUBE_API_KEY}`);
-    
-    // For now, return structured request for YouTube
-    return {
-      title: 'YouTube Video',
-      description: 'Video content - transcript extraction pending API setup',
-      metadata: {
-        videoTranscript: 'YouTube API integration required for transcripts'
-      }
-    };
-  } catch (error) {
-    console.error('YouTube extraction error:', error);
-    return null;
-  }
+  // Google's URL Context API handles YouTube videos automatically
+  // No need for separate YouTube API integration
+  return scrapeWithGoogleAPI(url);
 }
 
 // Main enhanced scraping function

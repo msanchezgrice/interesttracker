@@ -1,44 +1,44 @@
 # Environment Variables Setup
 
-## Required Variables
+## Required Environment Variables
 
-### Database (Supabase)
-```
-DATABASE_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
-DIRECT_URL="postgresql://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
-```
+Create a `.env.local` file in the `apps/web` directory with the following variables:
 
-### LLM Provider (Choose One)
+```bash
+# Database
+DATABASE_URL="postgresql://..."
 
-#### Option 1: OpenAI
-```
+# API Keys
 OPENAI_API_KEY="sk-..."
-```
-Get your API key from: https://platform.openai.com/api-keys
+GEMINI_API_KEY="AIza..."
 
-#### Option 2: Anthropic (Coming Soon)
-```
-ANTHROPIC_API_KEY="sk-ant-..."
+# App URL (for production)
+NEXT_PUBLIC_APP_URL="https://interesttracker.vercel.app"
 ```
 
-### Optional: Authentication (Clerk)
-```
-CLERK_PUBLISHABLE_KEY="pk_..."
-CLERK_SECRET_KEY="sk_..."
-```
+## Getting API Keys
 
-### Deployment
-```
-NEXT_PUBLIC_BASE_URL="https://your-app.vercel.app"
-```
+### Gemini API Key
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Create a new API key
+3. Add it to your `.env.local` and Vercel environment variables
 
-## Setting up in Vercel
+### OpenAI API Key (Optional - for fallback)
+1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
+2. Create a new API key
+3. Add it to your `.env.local` and Vercel environment variables
 
+## Vercel Environment Variables
+
+In your Vercel project settings, add the same environment variables:
 1. Go to your project settings
 2. Navigate to "Environment Variables"
-3. Add each variable above
-4. Redeploy for changes to take effect
+3. Add each variable for Production, Preview, and Development environments
 
-## Local Development
+## URL Context API Limits
 
-Create a `.env.local` file in `apps/web/` with the variables above.
+The Google URL Context API has the following limits during experimental phase:
+- 1500 queries per day per project
+- 100 queries per day per user in Google AI Studio
+- Up to 20 URLs per request
+- Free during experimental phase
