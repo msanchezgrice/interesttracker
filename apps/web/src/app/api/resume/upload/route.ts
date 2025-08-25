@@ -181,7 +181,7 @@ Focus on technical skills, programming languages, frameworks, tools, domain expe
     }
 
     const messages = await messagesResponse.json();
-    const assistantMessage = messages.data.find((msg: any) => msg.role === 'assistant');
+    const assistantMessage = messages.data.find((msg: { role: string; content: Array<{ text: { value: string } }> }) => msg.role === 'assistant');
     
     if (!assistantMessage) {
       throw new Error('No assistant response found');
