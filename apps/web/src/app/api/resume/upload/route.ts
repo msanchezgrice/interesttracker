@@ -96,7 +96,7 @@ Return ONLY a JSON array of 10-15 specific skills, technologies, and areas of ex
             'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
           },
           body: JSON.stringify({
-            model: "gpt-5",
+            model: "gpt-5", // Latest model as of August 2025
             input: [
               {
                 role: "user",
