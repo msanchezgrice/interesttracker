@@ -70,8 +70,8 @@ export default function SettingsPage() {
         </Link>
         <div className="flex items-center gap-4 text-sm">
           <Link className="hover:text-amber-400" href="/dashboard">Dashboard</Link>
-          <Link className="hover:text-amber-400" href="/ideas">Ideas</Link>
           <Link className="hover:text-amber-400" href="/history">History</Link>
+          <Link className="hover:text-amber-400" href="/ideas">Ideas</Link>
           <Link className="text-amber-400" href="/settings">Settings</Link>
         </div>
       </header>
