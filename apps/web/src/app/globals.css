@@ -165,3 +165,31 @@ body {
 .light ::-webkit-scrollbar-thumb:hover {
   background: rgb(156 163 175);
 }
+
+/* History page light mode fixes */
+.light table tr:hover {
+  background-color: rgb(243 244 246) !important;
+}
+
+.light .hover\:bg-neutral-900\/50:hover {
+  background-color: rgb(243 244 246);
+}
+
+/* Button fixes for light mode */
+.light .bg-amber-600 {
+  background-color: rgb(217 119 6);
+}
+
+.light .hover\:bg-amber-500:hover {
+  background-color: rgb(245 158 11);
+}
+
+/* Fix button text overflow */
+.light td button {
+  white-space: nowrap;
+}
+
+/* Expanded row background in light mode */
+.light .bg-neutral-900\/50 {
+  background-color: rgb(249 250 251);
+}

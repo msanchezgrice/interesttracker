@@ -10,7 +10,6 @@ export async function GET() {
       select: { 
         weeklyThemes: true, 
         generalInterests: true, 
-        linkedinUrl: true,
         extractedExpertise: true,
         lastExpertiseSync: true,
         updatedAt: true 
@@ -20,7 +19,6 @@ export async function GET() {
     return NextResponse.json({ 
       weeklyThemes: preferences?.weeklyThemes || [],
       generalInterests: preferences?.generalInterests || [],
-      linkedinUrl: preferences?.linkedinUrl || '',
       extractedExpertise: preferences?.extractedExpertise || [],
       lastExpertiseSync: preferences?.lastExpertiseSync || null,
       updatedAt: preferences?.updatedAt || null
@@ -34,7 +32,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const userId = "local-test"; // TODO: Get from auth
-    const { weeklyThemes, generalInterests, linkedinUrl, extractedExpertise } = await req.json();
+    const { weeklyThemes, generalInterests, extractedExpertise } = await req.json();
     
     if (!Array.isArray(weeklyThemes) || !Array.isArray(generalInterests)) {
       return NextResponse.json({ error: "weeklyThemes and generalInterests must be arrays" }, { status: 400 });
@@ -43,10 +41,8 @@ export async function POST(req: NextRequest) {
     const updateData: {
       weeklyThemes: string[];
       generalInterests: string[];
-      linkedinUrl?: string;
       extractedExpertise?: string[];
     } = { weeklyThemes, generalInterests };
-    if (linkedinUrl !== undefined) updateData.linkedinUrl = linkedinUrl;
     if (extractedExpertise !== undefined) updateData.extractedExpertise = extractedExpertise;
     
     const preferences = await prisma.userPreferences.upsert({
@@ -58,7 +54,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ 
       weeklyThemes: preferences.weeklyThemes,
       generalInterests: preferences.generalInterests,
-      linkedinUrl: preferences.linkedinUrl,
       extractedExpertise: preferences.extractedExpertise,
       updatedAt: preferences.updatedAt
     });

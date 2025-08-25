@@ -9,17 +9,18 @@ export default function SettingsPage() {
   const [newWeeklyTheme, setNewWeeklyTheme] = useState("");
   const [generalInterests, setGeneralInterests] = useState<string[]>([]);
   const [newGeneralInterest, setNewGeneralInterest] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [resumeText, setResumeText] = useState("");
   const [expertise, setExpertise] = useState<string[]>([]);
   const [manualExpertise, setManualExpertise] = useState("");
-  const [syncingLinkedIn, setSyncingLinkedIn] = useState(false);
+  const [processingResume, setProcessingResume] = useState(false);
   const [deviceKey, setDeviceKey] = useState("");
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<{
     database: boolean;
     api: boolean;
     message: string;
-  }>({ database: false, api: false, message: "Checking..." });
+  }>({ database: false, api: false, message: "Click 'Check Status' to test" });
+  const [checkingStatus, setCheckingStatus] = useState(false);
 
   useEffect(() => {
     // Load theme from localStorage
@@ -29,7 +30,6 @@ export default function SettingsPage() {
     }
 
     // Load from API and localStorage
-    checkStatus();
     loadPreferences();
   }, []);
 
@@ -40,7 +40,6 @@ export default function SettingsPage() {
       if (response.ok) {
         setWeeklyThemes(data.weeklyThemes || []);
         setGeneralInterests(data.generalInterests || []);
-        setLinkedinUrl(data.linkedinUrl || '');
         setExpertise(data.extractedExpertise || []);
       }
     } catch (error) {
@@ -49,6 +48,7 @@ export default function SettingsPage() {
   };
 
   const checkStatus = async () => {
+    setCheckingStatus(true);
     try {
       const response = await fetch('/api/status');
       const data = await response.json();
@@ -59,6 +59,8 @@ export default function SettingsPage() {
         api: false,
         message: "Failed to check status"
       });
+    } finally {
+      setCheckingStatus(false);
     }
   };
 
@@ -138,10 +140,9 @@ export default function SettingsPage() {
     await savePreferences({ weeklyThemes, generalInterests: [] });
   };
 
-  const savePreferences = async (data: { 
-    weeklyThemes: string[]; 
-    generalInterests: string[]; 
-    linkedinUrl?: string;
+    const savePreferences = async (data: {
+    weeklyThemes: string[];
+    generalInterests: string[];
     extractedExpertise?: string[];
   }) => {
     try {
@@ -292,60 +293,109 @@ export default function SettingsPage() {
               Professional Expertise
             </h3>
             <p className="text-neutral-400 dark:text-neutral-400 light:text-neutral-600 text-sm mt-1">
-              Connect your LinkedIn or manually add your expertise to personalize content ideas.
+              Upload your resume or paste your experience to personalize content ideas.
             </p>
           </div>
 
           <div className="space-y-4">
-            {/* LinkedIn URL input */}
+            {/* Resume paste/upload */}
             <div>
               <label className="block text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700 mb-2">
-                LinkedIn Profile URL
+                Resume / Experience
               </label>
-              <div className="flex gap-2">
-                <input
-                  type="url"
-                  value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  className="flex-1 px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500"
+              <div className="space-y-3">
+                <textarea
+                  value={resumeText}
+                  onChange={(e) => setResumeText(e.target.value)}
+                  placeholder="Paste your resume text here, or describe your professional experience, skills, and expertise..."
+                  className="w-full px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500 min-h-[100px]"
+                  rows={3}
                 />
-                <button
-                  onClick={async () => {
-                    setSyncingLinkedIn(true);
-                    try {
-                      const response = await fetch('/api/linkedin/sync', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ linkedinUrl })
-                      });
-                      const data = await response.json();
-                      if (response.ok) {
-                        setExpertise(data.expertise || []);
-                        await savePreferences({ 
-                          weeklyThemes, 
-                          generalInterests, 
-                          linkedinUrl,
-                          extractedExpertise: data.expertise 
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={async () => {
+                      if (!resumeText.trim()) return;
+                      setProcessingResume(true);
+                      try {
+                        const response = await fetch('/api/resume/extract', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ resumeText })
                         });
-                        if (data.message) {
-                          alert(data.message);
+                        const data = await response.json();
+                        if (response.ok) {
+                          setExpertise(data.expertise || []);
+                          await savePreferences({ 
+                            weeklyThemes, 
+                            generalInterests, 
+                            extractedExpertise: data.expertise 
+                          });
+                          alert('Skills extracted successfully!');
+                        } else {
+                          alert(data.error || 'Failed to extract skills');
                         }
-                      } else {
-                        alert(data.error || 'Failed to sync LinkedIn');
+                      } catch (error) {
+                        console.error('Failed to process resume:', error);
+                        alert('Failed to process resume');
+                      } finally {
+                        setProcessingResume(false);
                       }
-                    } catch (error) {
-                      console.error('Failed to sync LinkedIn:', error);
-                    } finally {
-                      setSyncingLinkedIn(false);
-                    }
-                  }}
-                  disabled={!linkedinUrl || syncingLinkedIn}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:cursor-not-allowed text-neutral-950 rounded-md text-sm font-medium transition-colors"
-                >
-                  {syncingLinkedIn ? 'Syncing...' : 'Sync LinkedIn'}
-                </button>
+                    }}
+                    disabled={!resumeText || processingResume}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:cursor-not-allowed text-neutral-950 rounded-md text-sm font-medium transition-colors"
+                  >
+                    {processingResume ? 'Processing...' : 'Extract Skills'}
+                  </button>
+                  <span className="text-sm text-neutral-500">or</span>
+                  <label className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-md text-sm font-medium transition-colors cursor-pointer">
+                    Upload PDF/Image
+                    <input
+                      type="file"
+                      accept=".pdf,image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        
+                        setProcessingResume(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append('file', file);
+                          
+                          const response = await fetch('/api/resume/upload', {
+                            method: 'POST',
+                            body: formData
+                          });
+                          const data = await response.json();
+                          
+                          if (response.ok) {
+                            setResumeText(data.text || '');
+                            if (data.expertise) {
+                              setExpertise(data.expertise);
+                              await savePreferences({ 
+                                weeklyThemes, 
+                                generalInterests, 
+                                extractedExpertise: data.expertise 
+                              });
+                              alert('Skills extracted successfully!');
+                            }
+                          } else {
+                            alert(data.error || 'Failed to process file');
+                          }
+                        } catch (error) {
+                          console.error('Failed to upload file:', error);
+                          alert('Failed to upload file');
+                        } finally {
+                          setProcessingResume(false);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
               </div>
+              <p className="text-xs text-neutral-500 mt-1">
+                We'll extract your skills and expertise from your resume
+              </p>
             </div>
 
             {/* Manual expertise input */}
@@ -366,7 +416,6 @@ export default function SettingsPage() {
                       savePreferences({ 
                         weeklyThemes, 
                         generalInterests, 
-                        linkedinUrl,
                         extractedExpertise: updated 
                       });
                     }
@@ -383,7 +432,6 @@ export default function SettingsPage() {
                       await savePreferences({ 
                         weeklyThemes, 
                         generalInterests, 
-                        linkedinUrl,
                         extractedExpertise: updated 
                       });
                     }
@@ -457,26 +505,38 @@ export default function SettingsPage() {
           <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 mb-4">
             System Status
           </h3>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span>Database Connection</span>
-              {status.database ? (
-                <CheckCircle className="h-5 w-5 text-green-400" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-red-400" />
-              )}
-            </div>
-            <div className="flex items-center justify-between">
-              <span>API Health</span>
-              {status.api ? (
-                <CheckCircle className="h-5 w-5 text-green-400" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-red-400" />
-              )}
-            </div>
-            <p className="text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
-              {status.message}
-            </p>
+          <div className="space-y-4">
+            <button
+              onClick={checkStatus}
+              disabled={checkingStatus}
+              className="w-full px-4 py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 disabled:cursor-not-allowed text-neutral-950 rounded-md text-sm font-medium transition-colors"
+            >
+              {checkingStatus ? 'Checking...' : 'Check Status'}
+            </button>
+            
+            {status.message !== "Click 'Check Status' to test" && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span>Database Connection</span>
+                  {status.database ? (
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-400" />
+                  )}
+                </div>
+                <div className="flex items-center justify-between">
+                  <span>API Health</span>
+                  {status.api ? (
+                    <CheckCircle className="h-5 w-5 text-green-400" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-400" />
+                  )}
+                </div>
+                <p className="text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
+                  {status.message}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 

@@ -288,22 +288,22 @@ export default function History() {
                           <button
                             onClick={() => analyzeEvent(event.id)}
                             disabled={analyzingEvents.has(event.id)}
-                            className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:bg-neutral-700 rounded text-xs font-medium transition-colors"
+                            className="px-3 py-1 bg-amber-600 hover:bg-amber-500 disabled:bg-neutral-700 rounded text-xs font-medium transition-colors whitespace-nowrap"
                           >
                             {analyzingEvents.has(event.id) ? (
                               <span className="flex items-center gap-1">
                                 <span className="animate-spin">⏳</span>
-                                Analyzing...
+                                <span>Analyzing...</span>
                               </span>
                             ) : (
                               <span className="flex items-center gap-1">
                                 <Sparkles className="h-3 w-3" />
-                                Analyze
+                                <span>Analyze</span>
                               </span>
                             )}
                           </button>
                         ) : (
-                          <span className="text-xs text-green-400">✓ Analyzed</span>
+                          <span className="text-xs text-green-400 whitespace-nowrap">✓ Analyzed</span>
                         )}
                       </td>
                     </tr>
