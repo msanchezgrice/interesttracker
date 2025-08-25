@@ -89,13 +89,13 @@ export async function POST(req: NextRequest) {
 1. The full text content from the document
 2. 10-15 specific skills, technologies, and areas of expertise
 
-Return the response as a JSON object in this exact format:
+Return ONLY a valid JSON object (no markdown formatting, no code blocks) in this exact format:
 {
   "text": "full extracted text from the resume...",
   "expertise": ["skill1", "skill2", "skill3", "skill4", "skill5", "skill6", "skill7", "skill8", "skill9", "skill10"]
 }
 
-Focus on technical skills, programming languages, frameworks, tools, domain expertise, and professional competencies. Be specific and avoid generic terms.`,
+Focus on technical skills, programming languages, frameworks, tools, domain expertise, and professional competencies. Be specific and avoid generic terms. Do not wrap the JSON in markdown code blocks.`,
             attachments: [
               {
                 file_id: fileId,
@@ -190,14 +190,30 @@ Focus on technical skills, programming languages, frameworks, tools, domain expe
     const content = assistantMessage.content[0].text.value;
     console.log('[Resume Upload] Raw response:', content);
 
-    // Parse the JSON response
+    // Parse the JSON response - handle markdown code blocks
     let extractedText = '';
     let expertise: string[] = [];
     
     try {
-      const parsed = JSON.parse(content);
+      // Strip markdown code blocks if present
+      let jsonContent = content;
+      if (content.includes('```json')) {
+        const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+        if (jsonMatch) {
+          jsonContent = jsonMatch[1];
+        }
+      } else if (content.includes('```')) {
+        const codeMatch = content.match(/```\s*([\s\S]*?)\s*```/);
+        if (codeMatch) {
+          jsonContent = codeMatch[1];
+        }
+      }
+      
+      const parsed = JSON.parse(jsonContent);
       extractedText = parsed.text || '';
       expertise = parsed.expertise || [];
+      
+      console.log(`[Resume Upload] Successfully parsed JSON - extracted ${expertise.length} skills`);
     } catch (parseError) {
       console.error('[Resume Upload] Failed to parse JSON response:', parseError);
       // If JSON parsing fails, treat the entire response as extracted text
