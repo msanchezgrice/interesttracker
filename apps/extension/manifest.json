@@ -3,7 +3,7 @@
   "name": "MakerPulse",
   "version": "0.4.0",
   "description": "Track engaged time by URL and send to MakerPulse backend.",
-  "permissions": ["tabs", "storage", "idle", "sidePanel", "webNavigation", "scripting"],
+  "permissions": ["tabs", "storage", "idle", "sidePanel", "webNavigation", "scripting", "alarms"],
   "host_permissions": ["<all_urls>"],
   "background": { "service_worker": "src/background.ts", "type": "module" },
   "action": { "default_title": "MakerPulse" },

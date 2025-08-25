@@ -6,6 +6,8 @@ import { Settings, Copy, CheckCircle, AlertCircle, ArrowLeft } from "lucide-reac
 export default function SettingsPage() {
   const [deviceKey, setDeviceKey] = useState("");
   const [copied, setCopied] = useState(false);
+  const [focusThemes, setFocusThemes] = useState<string[]>([]);
+  const [newTheme, setNewTheme] = useState("");
   const [status, setStatus] = useState<{
     database: boolean;
     api: boolean;
@@ -14,7 +16,20 @@ export default function SettingsPage() {
 
   useEffect(() => {
     checkStatus();
+    loadPreferences();
   }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const response = await fetch('/api/preferences');
+      const data = await response.json();
+      if (response.ok) {
+        setFocusThemes(data.focusThemes || []);
+      }
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    }
+  };
 
   const generateDeviceKey = async () => {
     try {
@@ -39,6 +54,39 @@ export default function SettingsPage() {
       setTimeout(() => setCopied(false), 2000);
     } catch {
       alert('Failed to copy to clipboard');
+    }
+  };
+
+  const addFocusTheme = async () => {
+    if (!newTheme.trim()) return;
+    
+    const updatedThemes = [...focusThemes, newTheme.trim()];
+    setFocusThemes(updatedThemes);
+    setNewTheme("");
+    
+    try {
+      await fetch('/api/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ focusThemes: updatedThemes })
+      });
+    } catch (error) {
+      console.error('Failed to save focus theme:', error);
+    }
+  };
+
+  const removeFocusTheme = async (index: number) => {
+    const updatedThemes = focusThemes.filter((_, i) => i !== index);
+    setFocusThemes(updatedThemes);
+    
+    try {
+      await fetch('/api/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ focusThemes: updatedThemes })
+      });
+    } catch (error) {
+      console.error('Failed to save focus themes:', error);
     }
   };
 
@@ -164,6 +212,58 @@ export default function SettingsPage() {
                 <span>Start browsing! Your engagement data will be tracked automatically</span>
               </li>
             </ol>
+          </section>
+
+          {/* Focus Themes */}
+          <section className="bg-neutral-900 border border-neutral-800 rounded-lg p-6">
+            <h2 className="text-lg font-medium mb-4">Things I'm Focused On This Week</h2>
+            <p className="text-sm text-neutral-400 mb-4">
+              Add topics you're currently focused on to help improve content recommendations and idea generation.
+            </p>
+            
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newTheme}
+                  onChange={(e) => setNewTheme(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && addFocusTheme()}
+                  placeholder="e.g., AI automation, React performance, content marketing..."
+                  className="flex-1 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-md text-sm"
+                />
+                <button
+                  onClick={addFocusTheme}
+                  className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-neutral-950 rounded-md font-medium transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              
+              {focusThemes.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {focusThemes.map((theme, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center gap-2 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full text-sm text-amber-400"
+                    >
+                      {theme}
+                      <button
+                        onClick={() => removeFocusTheme(index)}
+                        className="text-amber-400/60 hover:text-amber-400 text-xs"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              
+              {focusThemes.length === 0 && (
+                <p className="text-xs text-neutral-500 italic">
+                  No focus themes added yet. Add some topics to improve your content recommendations!
+                </p>
+              )}
+            </div>
           </section>
 
           {/* API Status */}

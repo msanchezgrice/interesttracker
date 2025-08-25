@@ -5,6 +5,15 @@ let systemIdle: 'active'|'idle'|'locked' = 'active';
 chrome.idle.setDetectionInterval?.(60);
 chrome.idle.onStateChanged.addListener((s) => { systemIdle = s; });
 
+// Set up hourly automatic sync
+chrome.alarms.create('hourlySync', { periodInMinutes: 60 });
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === 'hourlySync') {
+    console.log('[Background] Hourly sync triggered');
+    flushAll();
+  }
+});
+
 // Ensure clicking the toolbar icon opens the side panel
 chrome.runtime.onInstalled.addListener(() => {
   // Set default side panel behavior

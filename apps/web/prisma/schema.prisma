@@ -12,12 +12,14 @@ model User {
   email        String   @unique
   displayName  String?
   createdAt    DateTime @default(now())
-  devices      Device[]
-  events       Event[]
-  ideas        Idea[]
-  drafts       Draft[]
-  topics       TopicPreference[]
-  trends       ManualTrend[]
+  devices         Device[]
+  events          Event[]
+  ideas           Idea[]
+  drafts          Draft[]
+  topics          TopicPreference[]
+  trends          ManualTrend[]
+  excludedDomains ExcludedDomain[]
+  preferences     UserPreferences?
 }
 
 model Device {
@@ -135,6 +137,26 @@ enum Platform {
   LINKEDIN
   BLOG
   SHORTS
+}
+
+model ExcludedDomain {
+  id        String   @id @default(cuid())
+  userId    String
+  domain    String
+  createdAt DateTime @default(now())
+  
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, domain])
+}
+
+model UserPreferences {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  focusThemes  String[] // Things the user is focused on this week
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 
