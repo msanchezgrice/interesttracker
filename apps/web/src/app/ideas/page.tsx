@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Copy, ExternalLink, TrendingUp, Hash } from "lucide-react";
 
 type Idea = {
@@ -32,6 +34,9 @@ export default function Ideas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     fetch('/api/ideas')
@@ -53,6 +58,30 @@ export default function Ideas() {
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  const generateIdeas = async () => {
+    setGeneratingIdeas(true);
+    setGenerationStatus("");
+    
+    try {
+      const response = await fetch('/api/ideas/generate', { method: 'POST' });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGenerationStatus(`✓ Generated ${data.ideas?.length || 0} ideas from ${data.eventsProcessed || 0} events`);
+        // Refresh the ideas list
+        const ideasResponse = await fetch('/api/ideas');
+        const ideasData = await ideasResponse.json();
+        setIdeas(ideasData.ideas || []);
+      } else {
+        setGenerationStatus(`✗ Failed: ${data.error || 'Unknown error'}`);
+      }
+    } catch {
+      setGenerationStatus('✗ Failed to generate ideas');
+    } finally {
+      setGeneratingIdeas(false);
     }
   };
 
@@ -90,52 +119,54 @@ export default function Ideas() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between border-b border-neutral-800">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-md bg-amber-500" />
-          <span className="font-semibold tracking-tight">MakerPulse</span>
-        </Link>
-        <div className="flex items-center gap-4 text-sm">
-          <Link className="hover:text-amber-400" href="/dashboard">Dashboard</Link>
-          <Link className="hover:text-amber-400" href="/trends">Trends</Link>
-          <Link className="text-amber-400" href="/ideas">Ideas</Link>
-          <Link className="hover:text-amber-400" href="/history">History</Link>
-        </div>
-      </header>
-
-      <main className="max-w-6xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight">Ideas & Drafts</h1>
-          <p className="mt-2 text-neutral-400">Generated content ideas based on your attention data.</p>
-        </div>
-
-        {loading ? (
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-neutral-300">Loading ideas...</p>
+    <DashboardLayout>
+      <div className="mb-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">Ideas & Drafts</h1>
+            <p className="mt-2 text-neutral-400 dark:text-neutral-400 light:text-neutral-600">Generated content ideas based on your attention data.</p>
           </div>
-        ) : ideas.length === 0 ? (
-          <div className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
-            <p className="text-neutral-300">No ideas generated yet. Collect some attention data and generate ideas from the dashboard.</p>
-            <Link 
-              href="/dashboard"
-              className="inline-block mt-4 px-4 py-2 rounded-md border border-neutral-700 hover:border-neutral-600"
-            >
+          <button
+            onClick={generateIdeas}
+            disabled={generatingIdeas}
+            className="px-6 py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 dark:disabled:bg-neutral-700 light:disabled:bg-neutral-300 text-neutral-950 rounded-md font-medium transition-colors disabled:cursor-not-allowed"
+          >
+              {generatingIdeas ? 'Generating...' : 'Generate New Ideas'}
+            </button>
+          </div>
+          {generationStatus && (
+            <p className={`mt-4 text-sm ${generationStatus.includes('✓') ? 'text-green-400' : 'text-red-400'}`}>
+              {generationStatus}
+            </p>
+          )}
+        </div>
+
+                {loading ? (
+        <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
+          <p className="text-neutral-300 dark:text-neutral-300 light:text-neutral-700">Loading ideas...</p>
+        </div>
+      ) : ideas.length === 0 ? (
+        <div className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
+          <p className="text-neutral-300 dark:text-neutral-300 light:text-neutral-700">No ideas generated yet. Collect some attention data and generate ideas from the dashboard.</p>
+          <Link 
+            href="/dashboard"
+            className="inline-block mt-4 px-4 py-2 rounded-md border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 hover:border-neutral-600 dark:hover:border-neutral-600 light:hover:border-neutral-400"
+          >
               ← Back to Dashboard
             </Link>
           </div>
         ) : (
-          <div className="space-y-6">
-            {ideas.map((idea) => (
-              <div key={idea.id} className="rounded-lg border border-neutral-800 bg-neutral-900 p-6">
+        <div className="space-y-6">
+          {ideas.map((idea) => (
+            <div key={idea.id} className="rounded-lg border border-neutral-800 dark:border-neutral-800 light:border-neutral-200 bg-neutral-900 dark:bg-neutral-900 light:bg-white p-6">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-medium text-amber-400 text-lg">{idea.topic}</h3>
-                      <span className="text-2xl">{getPlatformEmoji(idea.format)}</span>
-                    </div>
-                    <div className="flex items-center gap-4 text-sm text-neutral-400">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h3 className="font-medium text-amber-400 dark:text-amber-400 light:text-amber-600 text-lg">{idea.topic}</h3>
+                    <span className="text-2xl">{getPlatformEmoji(idea.format)}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-neutral-400 dark:text-neutral-400 light:text-neutral-600">
                       <span className={`font-medium ${getStatusColor(idea.status)}`}>
                         {idea.status}
                       </span>
@@ -152,8 +183,8 @@ export default function Ideas() {
                 </div>
 
                 {/* Sources */}
-                <div className="mb-4">
-                  <p className="text-sm text-neutral-500 mb-2">Sources:</p>
+              <div className="mb-4">
+                <p className="text-sm text-neutral-500 dark:text-neutral-500 light:text-neutral-600 mb-2">Sources:</p>
                   <div className="flex flex-wrap gap-2">
                     {idea.sourceUrls.slice(0, 3).map((url, i) => (
                       <a 
@@ -161,14 +192,14 @@ export default function Ideas() {
                         href={url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-neutral-400 hover:text-amber-400"
+                      className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-400 light:text-neutral-600 hover:text-amber-400 dark:hover:text-amber-400 light:hover:text-amber-600"
                       >
                         {new URL(url).hostname}
                         <ExternalLink className="h-3 w-3" />
                       </a>
                     ))}
                     {idea.sourceUrls.length > 3 && (
-                      <span className="text-xs text-neutral-500">
+                    <span className="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-600">
                         +{idea.sourceUrls.length - 3} more
                       </span>
                     )}
@@ -180,7 +211,7 @@ export default function Ideas() {
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {idea.tags.map((tag, i) => (
-                        <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-800 rounded text-xs">
+                      <span key={i} className="inline-flex items-center gap-1 px-2 py-1 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-200 rounded text-xs">
                           <Hash className="h-3 w-3" />
                           {tag}
                         </span>
@@ -191,9 +222,9 @@ export default function Ideas() {
 
                 {/* Draft Content */}
                 {idea.proposedOutput && (
-                  <div className="mb-4 p-4 bg-neutral-800 rounded-lg">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-neutral-300">
+                <div className="mb-4 p-4 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-neutral-300 dark:text-neutral-300 light:text-neutral-700">
                         {idea.proposedOutput.platform || idea.format || 'Draft'} Content
                       </span>
                       <button
@@ -204,17 +235,17 @@ export default function Ideas() {
                         {copiedId === idea.id ? (
                           <span className="text-xs text-green-400">Copied!</span>
                         ) : (
-                          <Copy className="h-4 w-4 text-neutral-400" />
+                        <Copy className="h-4 w-4 text-neutral-400 dark:text-neutral-400 light:text-neutral-600" />
                         )}
                       </button>
                     </div>
-                    <pre className="whitespace-pre-wrap text-sm text-neutral-200 font-normal">
+                  <pre className="whitespace-pre-wrap text-sm text-neutral-200 dark:text-neutral-200 light:text-neutral-800 font-normal">
                       {idea.proposedOutput.content}
                     </pre>
                     {idea.proposedOutput.metadata?.hashtags && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {idea.proposedOutput.metadata.hashtags.map((tag, i) => (
-                          <span key={i} className="text-xs text-amber-400">#{tag}</span>
+                        <span key={i} className="text-xs text-amber-400 dark:text-amber-400 light:text-amber-600">#{tag}</span>
                         ))}
                       </div>
                     )}
@@ -223,7 +254,7 @@ export default function Ideas() {
 
                 {/* Reach Reasoning */}
                 {idea.estimatedReach?.reasoning && (
-                  <p className="text-xs text-neutral-500 italic mb-4">
+                <p className="text-xs text-neutral-500 dark:text-neutral-500 light:text-neutral-600 italic mb-4">
                     {idea.estimatedReach.reasoning}
                   </p>
                 )}
@@ -232,25 +263,25 @@ export default function Ideas() {
                 <div className="flex items-center gap-2">
                   {idea.status === 'PENDING' && (
                     <>
-                      <button
-                        onClick={() => updateStatus(idea.id, 'accept')}
-                        className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-sm font-medium"
-                      >
+                    <button
+                      onClick={() => updateStatus(idea.id, 'accept')}
+                      className="px-3 py-1 bg-green-600 dark:bg-green-600 light:bg-green-500 hover:bg-green-500 dark:hover:bg-green-500 light:hover:bg-green-400 rounded text-sm font-medium text-white"
+                    >
                         Accept
                       </button>
-                      <button
-                        onClick={() => updateStatus(idea.id, 'reject')}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm font-medium"
-                      >
+                    <button
+                      onClick={() => updateStatus(idea.id, 'reject')}
+                      className="px-3 py-1 bg-red-600 dark:bg-red-600 light:bg-red-500 hover:bg-red-500 dark:hover:bg-red-500 light:hover:bg-red-400 rounded text-sm font-medium text-white"
+                    >
                         Reject
                       </button>
                     </>
                   )}
                   {idea.status === 'ACCEPTED' && (
-                    <button
-                      onClick={() => updateStatus(idea.id, 'posted')}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-500 rounded text-sm font-medium"
-                    >
+                  <button
+                    onClick={() => updateStatus(idea.id, 'posted')}
+                    className="px-3 py-1 bg-blue-600 dark:bg-blue-600 light:bg-blue-500 hover:bg-blue-500 dark:hover:bg-blue-500 light:hover:bg-blue-400 rounded text-sm font-medium text-white"
+                  >
                       Mark as Posted
                     </button>
                   )}
@@ -258,17 +289,16 @@ export default function Ideas() {
               </div>
             ))}
             
-            <div className="mt-8">
-              <Link 
-                href="/dashboard"
-                className="inline-block px-4 py-2 rounded-md border border-neutral-700 hover:border-neutral-600"
-              >
+          <div className="mt-8">
+            <Link 
+              href="/dashboard"
+              className="inline-block px-4 py-2 rounded-md border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 hover:border-neutral-600 dark:hover:border-neutral-600 light:hover:border-neutral-400"
+            >
                 ← Back to Dashboard
               </Link>
             </div>
           </div>
-        )}
-      </main>
-    </div>
+      )}
+    </DashboardLayout>
   );
 }

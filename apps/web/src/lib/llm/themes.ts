@@ -52,16 +52,15 @@ Focus on accuracy and relevance. Be specific rather than generic.
 
   try {
     console.log('[Theme Analysis] Sending prompt to LLM...');
-    const analysis = await llm.completeJSON<ThemeAnalysis>(prompt);
+    const analysis = await llm.completeJSON<Record<string, unknown>>(prompt);
     console.log('[Theme Analysis] Raw LLM response:', JSON.stringify(analysis, null, 2));
     
     // Handle both response formats (direct or nested)
-    const responseData = analysis as any;
-    const themes = responseData.themes || responseData.main_themes || [];
-    const contentTags = responseData.contentTags || responseData.content_tags || [];
-    const contentType = responseData.contentType || responseData.content_type || 'reference';
-    const keyInsights = responseData.keyInsights || responseData.key_insights || [];
-    const technicalLevel = responseData.technicalLevel || responseData.technical_level || 'mixed';
+    const themes = (analysis.themes || analysis.main_themes || []) as string[];
+    const contentTags = (analysis.contentTags || analysis.content_tags || []) as string[];
+    const contentType = (analysis.contentType || analysis.content_type || 'reference') as string;
+    const keyInsights = (analysis.keyInsights || analysis.key_insights || []) as string[];
+    const technicalLevel = (analysis.technicalLevel || analysis.technical_level || 'mixed') as string;
     
     // Validate and clean the response
     const cleaned = {

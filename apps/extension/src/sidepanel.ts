@@ -2,38 +2,97 @@ function $(id: string) { return document.getElementById(id) as HTMLInputElement;
 
 const DEFAULT_BASE = 'https://interesttracker.vercel.app';
 
+// Load and apply theme
+function loadTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.body.classList.toggle('light', savedTheme === 'light');
+  updateThemeIcon(savedTheme);
+}
+
+function updateThemeIcon(theme: string) {
+  const sunIcon = document.getElementById('sunIcon');
+  const moonIcon = document.getElementById('moonIcon');
+  if (sunIcon && moonIcon) {
+    sunIcon.style.display = theme === 'light' ? 'block' : 'none';
+    moonIcon.style.display = theme === 'dark' ? 'block' : 'none';
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light');
+  const newTheme = isLight ? 'dark' : 'light';
+  document.body.classList.toggle('light');
+  localStorage.setItem('theme', newTheme);
+  updateThemeIcon(newTheme);
+}
+
 async function load() {
-  const { deviceKey = '', ingestUrl = '', paused = false, allowlist = [] } = await chrome.storage.local.get([
-    'deviceKey','ingestUrl','paused','allowlist'
+  const { deviceKey = '', ingestUrl = '', paused = false } = await chrome.storage.local.get([
+    'deviceKey','ingestUrl','paused'
   ]);
   $('deviceKey').value = deviceKey;
   const fallbackIngest = `${DEFAULT_BASE}/api/ingest`;
   $('ingestUrl').value = ingestUrl || fallbackIngest;
   $('paused').checked = !!paused;
-  $('allowlist').value = Array.isArray(allowlist) ? allowlist.join(', ') : '';
+  
+  // Update tracking status display
+  updateTrackingStatus();
 }
 
 async function save() {
   const deviceKey = $('deviceKey').value.trim();
   const ingestUrl = $('ingestUrl').value.trim();
   const paused = $('paused').checked;
-  const allowlist = $('allowlist').value.split(',').map(s => s.trim()).filter(Boolean);
-  await chrome.storage.local.set({ deviceKey, ingestUrl, paused, allowlist });
-  setStatus('Saved');
+  await chrome.storage.local.set({ deviceKey, ingestUrl, paused });
+  setStatus('Configuration saved', 'success');
+  updateTrackingStatus();
 }
 
 async function flush() {
+  setStatus('Syncing...', 'info');
   await chrome.runtime.sendMessage({ type: 'flush' });
-  setStatus('Flush requested');
+  setStatus('Data synced successfully', 'success');
 }
 
-function setStatus(s: string) {
+function setStatus(message: string, type: 'info' | 'success' | 'error' = 'info') {
   const el = document.getElementById('status');
-  if (el) el.textContent = s;
+  if (el) {
+    el.textContent = message;
+    el.className = `status ${type}`;
+    
+    // Clear status after 3 seconds
+    if (type !== 'error') {
+      setTimeout(() => {
+        el.textContent = '';
+        el.className = 'status';
+      }, 3000);
+    }
+  }
+}
+
+function updateTrackingStatus() {
+  const statusEl = document.getElementById('trackingStatus');
+  const valueEl = document.getElementById('trackingValue');
+  const paused = $('paused').checked;
+  const deviceKey = $('deviceKey').value.trim();
+  
+  if (!statusEl || !valueEl) return;
+  
+  if (!deviceKey) {
+    statusEl.className = 'tracking-status';
+    valueEl.textContent = 'Not configured';
+  } else if (paused) {
+    statusEl.className = 'tracking-status paused';
+    valueEl.textContent = 'Paused';
+  } else {
+    statusEl.className = 'tracking-status active';
+    valueEl.textContent = 'Tracking';
+  }
 }
 
 document.getElementById('save')?.addEventListener('click', save);
 document.getElementById('flush')?.addEventListener('click', flush);
+document.getElementById('paused')?.addEventListener('change', updateTrackingStatus);
 document.getElementById('openDashboard')?.addEventListener('click', async () => {
   const { ingestUrl = '' } = await chrome.storage.local.get(['ingestUrl']);
   const url = ingestUrl || `${DEFAULT_BASE}/api/ingest`;
@@ -42,10 +101,13 @@ document.getElementById('openDashboard')?.addEventListener('click', async () => 
     const base = `${u.protocol}//${u.host}`;
     chrome.tabs.create({ url: `${base}/dashboard` });
   } catch (e) {
-    setStatus('Invalid ingest URL');
+    setStatus('Invalid ingest URL', 'error');
   }
 });
+document.getElementById('themeToggle')?.addEventListener('click', toggleTheme);
 
+// Initialize theme on load
+loadTheme();
 load();
 
 

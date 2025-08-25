@@ -17,56 +17,84 @@
         color: #fafafa;
         font-size: 14px;
         line-height: 1.5;
+        min-width: 280px;
+      }
+      
+      body.light {
+        background: #ffffff;
+        color: #171717;
       }
       
       .container {
-        padding: 20px;
+        padding: 24px 20px;
       }
       
       .header {
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+      }
+      
+      .header-left {
+        display: flex;
+        align-items: center;
         gap: 12px;
-        margin-bottom: 24px;
       }
       
       .logo {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         background: #f59e0b;
-        border-radius: 6px;
+        border-radius: 8px;
+        flex-shrink: 0;
       }
       
       h1 {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 600;
         letter-spacing: -0.02em;
       }
       
+      body.light h1 {
+        color: #171717;
+      }
+      
       .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
       }
       
       label {
         display: block;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         color: #a3a3a3;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
+      }
+      
+      body.light label {
+        color: #737373;
       }
       
       input[type="text"],
       input[type="url"] {
         width: 100%;
-        padding: 10px 12px;
+        padding: 12px 14px;
         background: #171717;
         border: 1px solid #262626;
-        border-radius: 6px;
+        border-radius: 8px;
         color: #fafafa;
         font-size: 14px;
         transition: all 0.2s;
+      }
+      
+      body.light input[type="text"],
+      body.light input[type="url"] {
+        background: #fafafa;
+        border-color: #e5e5e5;
+        color: #171717;
       }
       
       input[type="text"]:focus,
@@ -74,6 +102,11 @@
         outline: none;
         border-color: #f59e0b;
         background: #1c1c1c;
+      }
+      
+      body.light input[type="text"]:focus,
+      body.light input[type="url"]:focus {
+        background: #ffffff;
       }
       
       input[type="text"]::placeholder,
@@ -84,13 +117,18 @@
       .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 12px;
+        gap: 10px;
+        padding: 14px;
         background: #171717;
         border: 1px solid #262626;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
+      }
+      
+      body.light .checkbox-group {
+        background: #fafafa;
+        border-color: #e5e5e5;
       }
       
       .checkbox-group:hover {
@@ -98,36 +136,46 @@
         border-color: #404040;
       }
       
+      body.light .checkbox-group:hover {
+        background: #f5f5f5;
+        border-color: #d4d4d4;
+      }
+      
       input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         accent-color: #f59e0b;
         cursor: pointer;
       }
       
       .checkbox-label {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 500;
         color: #fafafa;
         cursor: pointer;
         user-select: none;
       }
       
+      body.light .checkbox-label {
+        color: #171717;
+      }
+      
       .button-group {
-        display: flex;
-        gap: 8px;
-        margin-top: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 32px;
       }
       
       button {
-        flex: 1;
-        padding: 10px 16px;
+        padding: 12px 20px;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
+        white-space: nowrap;
       }
       
       button:active {
@@ -149,77 +197,204 @@
         border: 1px solid #404040;
       }
       
+      body.light #flush {
+        background: #f5f5f5;
+        color: #171717;
+        border-color: #e5e5e5;
+      }
+      
       #flush:hover {
         background: #404040;
       }
       
+      body.light #flush:hover {
+        background: #e5e5e5;
+      }
+      
       #openDashboard {
-        background: #262626;
+        grid-column: 1 / -1;
+        background: #171717;
         color: #fafafa;
         border: 1px solid #404040;
       }
       
+      body.light #openDashboard {
+        background: #fafafa;
+        color: #171717;
+        border-color: #e5e5e5;
+      }
+      
       #openDashboard:hover {
-        background: #404040;
+        background: #262626;
+        border-color: #525252;
+      }
+      
+      body.light #openDashboard:hover {
+        background: #f5f5f5;
+        border-color: #d4d4d4;
       }
       
       .status {
-        margin-top: 16px;
-        padding: 12px;
+        margin-top: 20px;
+        padding: 14px;
         background: #171717;
-        border-radius: 6px;
-        font-size: 12px;
+        border-radius: 8px;
+        font-size: 13px;
         color: #a3a3a3;
         text-align: center;
-        min-height: 36px;
+        min-height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s;
+      }
+      
+      body.light .status {
+        background: #fafafa;
+        color: #737373;
       }
       
       .status.success {
         color: #10b981;
         background: #064e3b1a;
+        border: 1px solid #064e3b33;
       }
       
       .status.error {
         color: #ef4444;
         background: #7f1d1d1a;
+        border: 1px solid #7f1d1d33;
       }
       
       .info-text {
-        font-size: 11px;
+        font-size: 12px;
         color: #525252;
-        margin-top: 4px;
+        margin-top: 6px;
+        line-height: 1.4;
       }
       
-      /* Divider */
-      .divider {
-        height: 1px;
+      body.light .info-text {
+        color: #a3a3a3;
+      }
+      
+      /* Tracking status indicator */
+      .tracking-status {
+        margin-top: 24px;
+        padding: 16px;
+        background: #171717;
+        border: 1px solid #262626;
+        border-radius: 8px;
+        text-align: center;
+      }
+      
+      body.light .tracking-status {
+        background: #fafafa;
+        border-color: #e5e5e5;
+      }
+      
+      .tracking-status.active {
+        background: #064e3b1a;
+        border-color: #10b981;
+      }
+      
+      .tracking-status.paused {
+        background: #7f1d1d1a;
+        border-color: #ef4444;
+      }
+      
+      .tracking-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #a3a3a3;
+        margin-bottom: 4px;
+      }
+      
+      .tracking-status.active .tracking-label {
+        color: #10b981;
+      }
+      
+      .tracking-status.paused .tracking-label {
+        color: #ef4444;
+      }
+      
+      .tracking-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fafafa;
+      }
+      
+      body.light .tracking-value {
+        color: #171717;
+      }
+      
+      /* Theme toggle button */
+      .theme-toggle {
+        padding: 8px;
+        border: 1px solid #262626;
+        border-radius: 8px;
+        background: #171717;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      
+      body.light .theme-toggle {
+        border-color: #e5e5e5;
+        background: #fafafa;
+      }
+      
+      .theme-toggle:hover {
         background: #262626;
-        margin: 20px 0;
+        border-color: #404040;
+      }
+      
+      body.light .theme-toggle:hover {
+        background: #f5f5f5;
+        border-color: #d4d4d4;
+      }
+      
+      .theme-toggle svg {
+        width: 18px;
+        height: 18px;
+        fill: #fafafa;
+      }
+      
+      body.light .theme-toggle svg {
+        fill: #171717;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="header">
-        <div class="logo"></div>
-        <h1>MakerPulse</h1>
+        <div class="header-left">
+          <div class="logo"></div>
+          <h1>MakerPulse</h1>
+        </div>
+        <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+          <svg id="sunIcon" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+          </svg>
+          <svg id="moonIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+          </svg>
+        </button>
       </div>
       
       <div class="form-group">
         <label>Device Key</label>
         <input id="deviceKey" type="text" placeholder="Paste your device key" />
-        <p class="info-text">Get this from your dashboard</p>
+        <p class="info-text">Get this from your dashboard at interesttracker.vercel.app</p>
       </div>
       
       <div class="form-group">
         <label>API Endpoint</label>
         <input id="ingestUrl" type="url" placeholder="https://interesttracker.vercel.app/api/ingest" />
       </div>
-      
-      <div class="divider"></div>
       
       <div class="form-group">
         <div class="checkbox-group">
@@ -228,16 +403,15 @@
         </div>
       </div>
       
-      <div class="form-group">
-        <label>Track Only These Sites</label>
-        <input id="allowlist" type="text" placeholder="youtube.com, github.com, twitter.com" />
-        <p class="info-text">Leave empty to track all sites</p>
+      <div class="tracking-status" id="trackingStatus">
+        <div class="tracking-label">Status</div>
+        <div class="tracking-value" id="trackingValue">Not configured</div>
       </div>
       
       <div class="button-group">
         <button id="save">Save</button>
-        <button id="flush">Sync</button>
-        <button id="openDashboard">Dashboard</button>
+        <button id="flush">Sync Now</button>
+        <button id="openDashboard">Open Dashboard</button>
       </div>
       
       <div id="status" class="status"></div>

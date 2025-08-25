@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import DashboardLayout from "@/components/DashboardLayout";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, ExternalLink, Sparkles, Clock, ScrollText, Hash, Lightbulb } from "lucide-react";
@@ -126,21 +127,7 @@ export default function History() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between border-b border-neutral-800">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-md bg-amber-500" />
-          <span className="font-semibold tracking-tight">MakerPulse</span>
-        </Link>
-        <div className="flex items-center gap-4 text-sm">
-          <Link className="hover:text-amber-400" href="/dashboard">Dashboard</Link>
-          <Link className="hover:text-amber-400" href="/trends">Trends</Link>
-          <Link className="hover:text-amber-400" href="/ideas">Ideas</Link>
-          <Link className="text-amber-400" href="/history">History</Link>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
+    <DashboardLayout>
         <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Browsing History</h1>
@@ -387,8 +374,7 @@ export default function History() {
               </tbody>
             </table>
           </div>
-        )}
-      </main>
-    </div>
+      )}
+    </DashboardLayout>
   );
 }

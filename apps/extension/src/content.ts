@@ -23,22 +23,11 @@ const scrollDepth = () => {
 );
 
 async function beat() {
-  const { paused = false, allowlist = [] } = await chrome.storage.local.get(['paused','allowlist']);
+  const { paused = false } = await chrome.storage.local.get(['paused']);
   if (paused) {
     console.log('Paused, skipping beat');
     return;
   }
-  
-  try {
-    const host = location.hostname.replace(/^www\./,'');
-    if (Array.isArray(allowlist) && allowlist.length) {
-      const allowed = allowlist.some((d: string) => host.endsWith(d));
-      if (!allowed) {
-        console.log('Host not in allowlist:', host, 'allowlist:', allowlist);
-        return;
-      }
-    }
-  } catch {}
   
   const beatData = {
     type: 'heartbeat',

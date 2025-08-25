@@ -121,6 +121,21 @@ export async function POST() {
           metadata: { hashtags: [topicData.topic.toLowerCase().replace(/\s+/g, '')] }
         }
       };
+      
+      // Map format to uppercase for Prisma enum
+      const formatMap: Record<string, 'TWITTER' | 'LINKEDIN' | 'BLOG' | 'SHORTS'> = {
+        'tweet': 'TWITTER',
+        'twitter': 'TWITTER',
+        'thread': 'TWITTER',
+        'linkedin': 'LINKEDIN',
+        'linkedin post': 'LINKEDIN',
+        'blog': 'BLOG',
+        'video': 'SHORTS',
+        'shorts': 'SHORTS'
+      };
+      
+      const rawFormat = ((bestIdea.format as string) || 'tweet').toLowerCase();
+      const prismaFormat = formatMap[rawFormat] || 'TWITTER';
 
       const idea = await prisma.idea.create({
         data: {
@@ -139,8 +154,8 @@ export async function POST() {
           },
           sourceEventIds: topEvents.map(e => e.id),
           tags: (bestIdea.tags as string[]) || [topicData.topic.toLowerCase().replace(/\s+/g, '-'), 'auto-generated'],
-          format: (bestIdea.format as 'TWITTER' | 'LINKEDIN' | 'BLOG' | 'SHORTS') || 'TWITTER',
-          estimatedReach: (bestIdea.estimatedReach as { score: number })?.score || 70,
+          format: prismaFormat,
+          estimatedReach: (bestIdea.estimatedReach as { score: number })?.score || (bestIdea.estimatedReach as number) || 70,
           proposedOutput: bestIdea.proposedOutput || bestIdea.draftContent ? {
             platform: (bestIdea.format as string) || 'TWITTER',
             content: (bestIdea.draftContent as string) || (bestIdea.proposedOutput as { content?: string })?.content || '',
