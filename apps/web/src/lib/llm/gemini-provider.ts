@@ -3,7 +3,7 @@ export interface GeminiCompletionOptions {
   temperature?: number;
   maxTokens?: number;
   model?: string;
-  tools?: Array<{ url_context?: {} }>;
+  tools?: Array<{ url_context?: Record<string, never> }>;
 }
 
 export class GeminiProvider {
@@ -24,20 +24,18 @@ export class GeminiProvider {
     console.log('[Gemini] Model:', options?.model || this.defaultModel);
     console.log('[Gemini] Tools:', options?.tools ? 'URL Context enabled' : 'No tools');
     
-    const requestBody: any = {
+    const requestBody = {
       contents: [{
         parts: [{ text: prompt }]
       }],
       generationConfig: {
         temperature: options?.temperature || 0.7,
         maxOutputTokens: options?.maxTokens || 2048,
-      }
+      },
+      tools: options?.tools || undefined
     };
 
-    // Add tools if provided
-    if (options?.tools) {
-      requestBody.tools = options.tools;
-    }
+
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${options?.model || this.defaultModel}:generateContent`, {
       method: 'POST',
@@ -67,7 +65,7 @@ export class GeminiProvider {
   async completeJSON<T>(prompt: string, options?: GeminiCompletionOptions): Promise<T> {
     console.log('[Gemini JSON] Starting JSON completion request');
     
-    const requestBody: any = {
+    const requestBody = {
       contents: [{
         parts: [{ text: `${prompt}\n\nRespond with valid JSON only.` }]
       }],
@@ -75,13 +73,11 @@ export class GeminiProvider {
         temperature: options?.temperature || 0.3,
         maxOutputTokens: options?.maxTokens || 2048,
         response_mime_type: "application/json"
-      }
+      },
+      tools: options?.tools || undefined
     };
 
-    // Add tools if provided
-    if (options?.tools) {
-      requestBody.tools = options.tools;
-    }
+
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${options?.model || this.defaultModel}:generateContent`, {
       method: 'POST',
@@ -105,7 +101,7 @@ export class GeminiProvider {
       const jsonStr = data.candidates[0].content.parts[0].text;
       try {
         return JSON.parse(jsonStr);
-      } catch (e) {
+      } catch (error) {
         console.error('[Gemini JSON] Failed to parse JSON:', jsonStr);
         throw new Error('Failed to parse JSON response from Gemini');
       }
