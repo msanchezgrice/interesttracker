@@ -27,6 +27,7 @@ export interface IdeaGenerationContext {
   themes: ThemeAnalysis;
   recentTopics?: string[];
   userExpertise?: string[];
+  weeklyInterests?: string[];
 }
 
 export async function generateContentIdeas(
@@ -64,6 +65,7 @@ Context about what captured their attention:
 
 ${context.recentTopics?.length ? `Recent interests: ${context.recentTopics.join(', ')}` : ''}
 ${context.userExpertise?.length ? `Their expertise: ${context.userExpertise.join(', ')}` : ''}
+${context.weeklyInterests?.length ? `Things they're focused on this week: ${context.weeklyInterests.join(', ')}` : ''}
 
 Generate 3-4 content ideas that:
 1. Build on what interested them about this content

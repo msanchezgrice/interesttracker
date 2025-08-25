@@ -64,7 +64,17 @@ export default function Ideas() {
     setGenerationStatus("");
     
     try {
-      const response = await fetch('/api/ideas/generate', { method: 'POST' });
+      // Get ignored domains and weekly interests from localStorage
+      const ignoredDomains = JSON.parse(localStorage.getItem('ignoredDomains') || '[]');
+      const weeklyInterests = JSON.parse(localStorage.getItem('weeklyInterests') || '[]');
+      
+      const response = await fetch('/api/ideas/generate', { 
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ignoredDomains, weeklyInterests })
+      });
       const data = await response.json();
       
       if (response.ok) {

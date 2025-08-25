@@ -4,17 +4,25 @@ import { calculateInterestScore, extractTopicFromEvent } from "@/lib/scoring";
 import { generateContentIdeas } from "@/lib/llm/ideas";
 import { analyzePageThemes } from "@/lib/llm/themes";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
     // Get user - hardcoded for now
     const userId = "local-test";
     
-    // Get recent high-engagement events
+    // Get ignored domains and weekly interests from request body
+    const body = await request.json().catch(() => ({}));
+    const ignoredDomains = body.ignoredDomains || [];
+    const weeklyInterests = body.weeklyInterests || [];
+    
+    // Get recent high-engagement events, excluding ignored domains
     const recentEvents = await prisma.event.findMany({
       where: {
         userId,
         tsStart: {
           gte: new Date(Date.now() - 48 * 60 * 60 * 1000) // Last 48 hours
+        },
+        domain: {
+          notIn: ignoredDomains
         }
       },
       orderBy: {
@@ -101,7 +109,8 @@ export async function POST() {
             technicalLevel: 'intermediate' as const,
             keyInsights: [`High engagement with ${topicData.topic} content`]
           },
-          recentTopics: Array.from(topicScores.keys()).slice(0, 5)
+          recentTopics: Array.from(topicScores.keys()).slice(0, 5),
+          weeklyInterests: weeklyInterests
         };
         
         contentIdeas = await generateContentIdeas(ideaContext);

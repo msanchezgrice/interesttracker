@@ -40,8 +40,14 @@ export default function History() {
   const [analyzingEvents, setAnalyzingEvents] = useState<Set<string>>(new Set());
   const [sortBy, setSortBy] = useState<'tsStart' | 'interestScore'>('tsStart');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [ignoredDomains, setIgnoredDomains] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+    // Load ignored domains from localStorage
+    const saved = localStorage.getItem('ignoredDomains');
+    if (saved) {
+      setIgnoredDomains(new Set(JSON.parse(saved)));
+    }
     fetchEvents();
   }, [sortBy, sortOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -91,6 +97,20 @@ export default function History() {
         next.add(id);
       }
       return next;
+    });
+  };
+
+  const toggleIgnoreDomain = (domain: string) => {
+    setIgnoredDomains(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(domain)) {
+        newSet.delete(domain);
+      } else {
+        newSet.add(domain);
+      }
+      // Save to localStorage
+      localStorage.setItem('ignoredDomains', JSON.stringify(Array.from(newSet)));
+      return newSet;
     });
   };
 
@@ -165,6 +185,7 @@ export default function History() {
                   <th className="text-left py-3 px-4">Themes</th>
                   <th className="text-left py-3 px-4">Tags</th>
                   <th className="text-center py-3 px-4">Interest</th>
+                  <th className="text-center py-3 px-4">Ignore</th>
                   <th className="text-center py-3 px-4">Actions</th>
                 </tr>
               </thead>
@@ -252,6 +273,15 @@ export default function History() {
                         <span className={`text-lg font-bold ${getInterestColor(event.interestScore)}`}>
                           {event.interestScore || '—'}
                         </span>
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <input
+                          type="checkbox"
+                          checked={ignoredDomains.has(event.domain)}
+                          onChange={() => toggleIgnoreDomain(event.domain)}
+                          className="w-4 h-4 rounded border-neutral-600 bg-neutral-800 text-amber-500 focus:ring-amber-500 focus:ring-offset-0 cursor-pointer"
+                          title={`${ignoredDomains.has(event.domain) ? 'Include' : 'Ignore'} ${event.domain} in idea generation`}
+                        />
                       </td>
                       <td className="py-4 px-4 text-center">
                         {!event.metadataFetched ? (
