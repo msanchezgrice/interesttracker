@@ -1,4 +1,5 @@
 import * as cheerio from 'cheerio';
+import { enhancedScrape, extractKeyPoints } from './enhanced-scraper';
 
 export interface PageMetadata {
   description?: string;
@@ -13,8 +14,22 @@ export async function extractPageMetadata(url: string): Promise<PageMetadata> {
   console.log('[Scraper] Starting metadata extraction for:', url);
   
   try {
-    // Fetch the page HTML
-    console.log('[Scraper] Fetching page HTML...');
+    // Try enhanced scraping first
+    const enhanced = await enhancedScrape(url);
+    if (enhanced && enhanced.fullContent) {
+      console.log('[Scraper] Using enhanced scraping results');
+      return {
+        description: enhanced.description,
+        keywords: extractKeyPoints(enhanced.fullContent),
+        mainContent: enhanced.fullContent,
+        ogImage: '', // TODO: Extract from enhanced metadata
+        author: enhanced.metadata.author || '',
+        publishedDate: enhanced.metadata.publishDate || ''
+      };
+    }
+    
+    // Fallback to original scraping
+    console.log('[Scraper] Falling back to cheerio scraping');
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; MakerPulse/1.0; +https://makerpulse.app/bot)'

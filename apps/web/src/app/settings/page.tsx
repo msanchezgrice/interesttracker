@@ -328,6 +328,11 @@ export default function SettingsPage() {
                           linkedinUrl,
                           extractedExpertise: data.expertise 
                         });
+                        if (data.message) {
+                          alert(data.message);
+                        }
+                      } else {
+                        alert(data.error || 'Failed to sync LinkedIn');
                       }
                     } catch (error) {
                       console.error('Failed to sync LinkedIn:', error);

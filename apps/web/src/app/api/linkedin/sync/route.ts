@@ -1,38 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-// LinkedIn scraping function using Puppeteer or simple fetch
+// LinkedIn scraping function - returns empty array if can't scrape
 async function scrapeLinkedInProfile(url: string): Promise<string[]> {
   try {
-    // For now, we'll use a simple approach with fetch
-    // In production, you might want to use Puppeteer or Playwright
-    
     // Extract username from LinkedIn URL
     const match = url.match(/linkedin\.com\/in\/([^\/]+)/);
     if (!match) {
       throw new Error("Invalid LinkedIn URL");
     }
     
-    // Since LinkedIn requires authentication for full profile access,
-    // we'll return a placeholder implementation
-    // In production, you'd implement proper scraping or use LinkedIn API
+    // LinkedIn requires authentication for profile access
+    // Without proper scraping setup, we return empty array
+    // User can manually add expertise instead
     
-    // For demonstration, extract some expertise from the URL itself
-    // const username = match[1];
+    // TODO: Implement one of these approaches:
+    // 1. Google's URL context API when available
+    // 2. Puppeteer/Playwright for browser automation
+    // 3. LinkedIn API with OAuth
+    // 4. Third-party service (ScrapingBee, Apify, etc.)
     
-    // You could enhance this by:
-    // 1. Using Puppeteer/Playwright for actual scraping
-    // 2. Using LinkedIn API with OAuth
-    // 3. Using a third-party service like ScrapingBee
-    
-    // Placeholder expertise based on common patterns
-    const placeholderExpertise = [
-      "Software Development",
-      "Product Management", 
-      "Technical Leadership"
-    ];
-    
-    return placeholderExpertise;
+    console.log(`Would scrape LinkedIn profile: ${url}`);
+    return [];
   } catch (error) {
     console.error("LinkedIn scraping error:", error);
     throw error;
@@ -71,7 +60,9 @@ export async function POST(req: NextRequest) {
     
     return NextResponse.json({ 
       expertise,
-      message: "LinkedIn profile synced successfully"
+      message: expertise.length > 0 
+        ? "LinkedIn profile synced successfully" 
+        : "LinkedIn URL saved. Please add your expertise manually below."
     });
   } catch (error) {
     console.error("Failed to sync LinkedIn:", error);
