@@ -13,6 +13,7 @@ export default function SettingsPage() {
   const [expertise, setExpertise] = useState<string[]>([]);
   const [manualExpertise, setManualExpertise] = useState("");
   const [processingResume, setProcessingResume] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState("");
   const [deviceKey, setDeviceKey] = useState("");
   const [copied, setCopied] = useState(false);
   const [status, setStatus] = useState<{
@@ -305,13 +306,35 @@ export default function SettingsPage() {
                 Resume / Experience
               </label>
               <div className="space-y-3">
+                {uploadedFileName && (
+                  <div className="flex items-center gap-2 p-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-100 rounded-md text-sm">
+                    <svg className="h-4 w-4 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="flex-1">{uploadedFileName}</span>
+                    <button
+                      onClick={() => {
+                        setUploadedFileName("");
+                        setResumeText("");
+                      }}
+                      className="text-neutral-400 hover:text-red-400"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                
                 <textarea
                   value={resumeText}
-                  onChange={(e) => setResumeText(e.target.value)}
-                  placeholder="Paste your resume text here, or describe your professional experience, skills, and expertise..."
+                  onChange={(e) => {
+                    setResumeText(e.target.value);
+                    setUploadedFileName(""); // Clear file name if user types
+                  }}
+                  placeholder="Paste your resume text here, or upload a PDF below..."
                   className="w-full px-3 py-2 bg-neutral-800 dark:bg-neutral-800 light:bg-neutral-50 border border-neutral-700 dark:border-neutral-700 light:border-neutral-300 rounded-md text-sm focus:outline-none focus:border-amber-500 min-h-[100px]"
                   rows={3}
                 />
+                
                 <div className="flex items-center gap-4">
                   <button
                     onClick={async () => {
@@ -334,6 +357,9 @@ export default function SettingsPage() {
                             extractedExpertise: data.expertise 
                           });
                           alert(`Successfully extracted ${data.expertise.length} skills!`);
+                          // Clear the form after successful extraction
+                          setResumeText("");
+                          setUploadedFileName("");
                         } else {
                           alert(data.error || 'Failed to extract skills');
                         }
@@ -349,47 +375,24 @@ export default function SettingsPage() {
                   >
                     {processingResume ? 'Processing...' : 'Extract Skills'}
                   </button>
+                  
                   <span className="text-sm text-neutral-500">or</span>
+                  
                   <label className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-md text-sm font-medium transition-colors cursor-pointer">
-                    Upload PDF/Image
+                    Upload PDF
                     <input
                       type="file"
-                      accept=".pdf,image/*"
+                      accept=".pdf"
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
                         
-                        setProcessingResume(true);
-                        try {
-                          const formData = new FormData();
-                          formData.append('file', file);
-                          
-                          const response = await fetch('/api/resume/upload', {
-                            method: 'POST',
-                            body: formData
-                          });
-                          const data = await response.json();
-                          
-                          if (response.ok) {
-                            setResumeText(data.text || '');
-                            if (data.expertise) {
-                              setExpertise(data.expertise);
-                              await savePreferences({ 
-                                weeklyThemes, 
-                                generalInterests, 
-                                extractedExpertise: data.expertise 
-                              });
-                              alert('Skills extracted successfully!');
-                            }
-                          } else {
-                            alert(data.error || 'Failed to process file');
-                          }
-                        } catch (error) {
-                          console.error('Failed to upload file:', error);
-                          alert('Failed to upload file');
-                        } finally {
-                          setProcessingResume(false);
-                        }
+                        setUploadedFileName(file.name);
+                        
+                        // For now, PDF text extraction is not implemented
+                        // User will need to paste the text manually
+                        setResumeText("");
+                        alert("PDF upload is not yet implemented. Please copy and paste your resume text instead.");
                       }}
                       className="hidden"
                     />
