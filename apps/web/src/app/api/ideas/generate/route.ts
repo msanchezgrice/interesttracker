@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json().catch(() => ({}));
     const ignoredDomains = body.ignoredDomains || [];
     const weeklyThemes = body.weeklyThemes || [];
-    const generalInterests = body.generalInterests || [];
+    const generalInterests = body.generalInterests || []; // Currently unused but may be used in future
     const userExpertise = body.userExpertise || [];
     
     // Get recent high-engagement events, excluding ignored domains

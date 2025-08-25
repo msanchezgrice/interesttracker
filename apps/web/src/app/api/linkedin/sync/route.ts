@@ -18,7 +18,7 @@ async function scrapeLinkedInProfile(url: string): Promise<string[]> {
     // In production, you'd implement proper scraping or use LinkedIn API
     
     // For demonstration, extract some expertise from the URL itself
-    const username = match[1];
+    // const username = match[1];
     
     // You could enhance this by:
     // 1. Using Puppeteer/Playwright for actual scraping

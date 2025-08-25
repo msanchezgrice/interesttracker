@@ -40,7 +40,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "weeklyThemes and generalInterests must be arrays" }, { status: 400 });
     }
     
-    const updateData: any = { weeklyThemes, generalInterests };
+    const updateData: {
+      weeklyThemes: string[];
+      generalInterests: string[];
+      linkedinUrl?: string;
+      extractedExpertise?: string[];
+    } = { weeklyThemes, generalInterests };
     if (linkedinUrl !== undefined) updateData.linkedinUrl = linkedinUrl;
     if (extractedExpertise !== undefined) updateData.extractedExpertise = extractedExpertise;
     
