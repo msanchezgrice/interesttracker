@@ -459,7 +459,6 @@ export default function SettingsPage() {
                         await savePreferences({ 
                           weeklyThemes, 
                           generalInterests, 
-                          linkedinUrl,
                           extractedExpertise: updated 
                         });
                       }}
