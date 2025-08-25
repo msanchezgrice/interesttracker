@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MakerPulse",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Track engaged time by URL and send to MakerPulse backend.",
   "permissions": ["tabs", "storage", "idle", "sidePanel", "webNavigation", "scripting"],
   "host_permissions": ["<all_urls>"],

@@ -17,42 +17,44 @@
         color: #fafafa;
         font-size: 14px;
         line-height: 1.5;
+        min-width: 280px;
       }
       
       .container {
-        padding: 20px;
+        padding: 24px 20px;
       }
       
       .header {
         display: flex;
         align-items: center;
         gap: 12px;
-        margin-bottom: 24px;
+        margin-bottom: 32px;
       }
       
       .logo {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         background: #f59e0b;
-        border-radius: 6px;
+        border-radius: 8px;
+        flex-shrink: 0;
       }
       
       h1 {
-        font-size: 20px;
+        font-size: 22px;
         font-weight: 600;
         letter-spacing: -0.02em;
       }
       
       .form-group {
-        margin-bottom: 20px;
+        margin-bottom: 24px;
       }
       
       label {
         display: block;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 500;
         color: #a3a3a3;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
@@ -60,10 +62,10 @@
       input[type="text"],
       input[type="url"] {
         width: 100%;
-        padding: 10px 12px;
+        padding: 12px 14px;
         background: #171717;
         border: 1px solid #262626;
-        border-radius: 6px;
+        border-radius: 8px;
         color: #fafafa;
         font-size: 14px;
         transition: all 0.2s;
@@ -84,11 +86,11 @@
       .checkbox-group {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 12px;
+        gap: 10px;
+        padding: 14px;
         background: #171717;
         border: 1px solid #262626;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
       }
@@ -99,14 +101,14 @@
       }
       
       input[type="checkbox"] {
-        width: 18px;
-        height: 18px;
+        width: 20px;
+        height: 20px;
         accent-color: #f59e0b;
         cursor: pointer;
       }
       
       .checkbox-label {
-        font-size: 14px;
+        font-size: 15px;
         font-weight: 500;
         color: #fafafa;
         cursor: pointer;
@@ -114,20 +116,21 @@
       }
       
       .button-group {
-        display: flex;
-        gap: 8px;
-        margin-top: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 32px;
       }
       
       button {
-        flex: 1;
-        padding: 10px 16px;
+        padding: 12px 20px;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
+        white-space: nowrap;
       }
       
       button:active {
@@ -154,50 +157,92 @@
       }
       
       #openDashboard {
-        background: #262626;
+        grid-column: 1 / -1;
+        background: #171717;
         color: #fafafa;
         border: 1px solid #404040;
       }
       
       #openDashboard:hover {
-        background: #404040;
+        background: #262626;
+        border-color: #525252;
       }
       
       .status {
-        margin-top: 16px;
-        padding: 12px;
+        margin-top: 20px;
+        padding: 14px;
         background: #171717;
-        border-radius: 6px;
-        font-size: 12px;
+        border-radius: 8px;
+        font-size: 13px;
         color: #a3a3a3;
         text-align: center;
-        min-height: 36px;
+        min-height: 44px;
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: all 0.3s;
       }
       
       .status.success {
         color: #10b981;
         background: #064e3b1a;
+        border: 1px solid #064e3b33;
       }
       
       .status.error {
         color: #ef4444;
         background: #7f1d1d1a;
+        border: 1px solid #7f1d1d33;
       }
       
       .info-text {
-        font-size: 11px;
+        font-size: 12px;
         color: #525252;
-        margin-top: 4px;
+        margin-top: 6px;
+        line-height: 1.4;
       }
       
-      /* Divider */
-      .divider {
-        height: 1px;
-        background: #262626;
-        margin: 20px 0;
+      /* Tracking status indicator */
+      .tracking-status {
+        margin-top: 24px;
+        padding: 16px;
+        background: #171717;
+        border: 1px solid #262626;
+        border-radius: 8px;
+        text-align: center;
+      }
+      
+      .tracking-status.active {
+        background: #064e3b1a;
+        border-color: #10b981;
+      }
+      
+      .tracking-status.paused {
+        background: #7f1d1d1a;
+        border-color: #ef4444;
+      }
+      
+      .tracking-label {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #a3a3a3;
+        margin-bottom: 4px;
+      }
+      
+      .tracking-status.active .tracking-label {
+        color: #10b981;
+      }
+      
+      .tracking-status.paused .tracking-label {
+        color: #ef4444;
+      }
+      
+      .tracking-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fafafa;
       }
     </style>
   </head>
@@ -211,15 +256,13 @@
       <div class="form-group">
         <label>Device Key</label>
         <input id="deviceKey" type="text" placeholder="Paste your device key" />
-        <p class="info-text">Get this from your dashboard</p>
+        <p class="info-text">Get this from your dashboard at interesttracker.vercel.app</p>
       </div>
       
       <div class="form-group">
         <label>API Endpoint</label>
         <input id="ingestUrl" type="url" placeholder="https://interesttracker.vercel.app/api/ingest" />
       </div>
-      
-      <div class="divider"></div>
       
       <div class="form-group">
         <div class="checkbox-group">
@@ -228,16 +271,15 @@
         </div>
       </div>
       
-      <div class="form-group">
-        <label>Track Only These Sites</label>
-        <input id="allowlist" type="text" placeholder="youtube.com, github.com, twitter.com" />
-        <p class="info-text">Leave empty to track all sites</p>
+      <div class="tracking-status" id="trackingStatus">
+        <div class="tracking-label">Status</div>
+        <div class="tracking-value" id="trackingValue">Not configured</div>
       </div>
       
       <div class="button-group">
         <button id="save">Save</button>
-        <button id="flush">Sync</button>
-        <button id="openDashboard">Dashboard</button>
+        <button id="flush">Sync Now</button>
+        <button id="openDashboard">Open Dashboard</button>
       </div>
       
       <div id="status" class="status"></div>

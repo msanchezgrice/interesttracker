@@ -2,6 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Copy, ExternalLink, TrendingUp, Hash } from "lucide-react";
 
 type Idea = {
@@ -32,6 +33,9 @@ export default function Ideas() {
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [generatingIdeas, setGeneratingIdeas] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     fetch('/api/ideas')
@@ -53,6 +57,30 @@ export default function Ideas() {
       setTimeout(() => setCopiedId(null), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  const generateIdeas = async () => {
+    setGeneratingIdeas(true);
+    setGenerationStatus("");
+    
+    try {
+      const response = await fetch('/api/ideas/generate', { method: 'POST' });
+      const data = await response.json();
+      
+      if (response.ok) {
+        setGenerationStatus(`✓ Generated ${data.ideas?.length || 0} ideas from ${data.eventsProcessed || 0} events`);
+        // Refresh the ideas list
+        const ideasResponse = await fetch('/api/ideas');
+        const ideasData = await ideasResponse.json();
+        setIdeas(ideasData.ideas || []);
+      } else {
+        setGenerationStatus(`✗ Failed: ${data.error || 'Unknown error'}`);
+      }
+    } catch {
+      setGenerationStatus('✗ Failed to generate ideas');
+    } finally {
+      setGeneratingIdeas(false);
     }
   };
 
@@ -106,8 +134,24 @@ export default function Ideas() {
 
       <main className="max-w-6xl mx-auto px-6 py-12">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight">Ideas & Drafts</h1>
-          <p className="mt-2 text-neutral-400">Generated content ideas based on your attention data.</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-3xl font-semibold tracking-tight">Ideas & Drafts</h1>
+              <p className="mt-2 text-neutral-400">Generated content ideas based on your attention data.</p>
+            </div>
+            <button
+              onClick={generateIdeas}
+              disabled={generatingIdeas}
+              className="px-6 py-3 bg-amber-500 hover:bg-amber-400 disabled:bg-neutral-700 text-neutral-950 rounded-md font-medium transition-colors disabled:cursor-not-allowed"
+            >
+              {generatingIdeas ? 'Generating...' : 'Generate New Ideas'}
+            </button>
+          </div>
+          {generationStatus && (
+            <p className={`mt-4 text-sm ${generationStatus.includes('✓') ? 'text-green-400' : 'text-red-400'}`}>
+              {generationStatus}
+            </p>
+          )}
         </div>
 
         {loading ? (
